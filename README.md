@@ -10,7 +10,9 @@ A tree nodes private blockchain
 * Three Execution Nodes
 * Three Consensus Nodes
 * One Validator
-* Local peers syncing for Executions and Beacons 
+* Local peers syncing for Executions and Beacons
+* Aditional (optional) validator (will attach to consensus-02)
+* No need validators to stake 32 ETH
 * Already created some accounts
 * A lot of ETH to distribute
 * Postman JSON file to test endpoints
