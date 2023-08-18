@@ -1,0 +1,97 @@
+version: "3.0"
+
+name: node01
+
+networks:
+  default:
+    name: interna
+
+services:
+  bc-node01:
+    hostname: bc-node01
+    container_name: bc-node01
+    image: "ethereum/client-go:latest"
+    command:
+      - --http
+      - --http.api=admin,debug,web3,eth,txpool,engine,personal,net
+      - --http.addr=0.0.0.0
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --authrpc.vhosts=*
+      - --authrpc.addr=0.0.0.0
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=admin,debug,web3,eth,txpool,engine,personal,net
+      - --ws.origins=*
+      - --authrpc.jwtsecret=/execution/jwtsecret
+      - --datadir=/execution
+      - --allow-insecure-unlock
+      - --unlock=0x48deeb959d9af454ec406d2a686e50728036e19e
+      - --password=/execution/password.txt
+      - --nodiscover
+      - --syncmode=full
+      - --gcmode=archive
+      - --identity=node01
+      - --cache=4096
+      - --maxpeers=50
+      - --verbosity=5
+      - --networkid=8658
+      - --nodekeyhex=b0ac22adcad37213c7c565810a50f1772291e7b0ce53fb73e7ec2a3c75bc0001
+    ports:
+      - 35100:8545
+      - 35101:8546
+    volumes:
+      - ./execution:/execution
+      - ./jwtsecret:/execution/jwtsecret
+      
+  bc-beacon-01:
+    hostname: bc-beacon-01
+    container_name: bc-beacon-01
+    image: "gcr.io/prysmaticlabs/prysm/beacon-chain:latest"
+    command:
+      - --datadir=/consensus/beacondata
+      - --min-sync-peers=1
+      - --genesis-state=/consensus/genesis.ssz
+      - --bootstrap-node=
+      - --chain-config-file=/consensus/config.yml
+      - --chain-id=8658
+      - --rpc-host=0.0.0.0
+      - --monitoring-host=0.0.0.0
+      - --grpc-gateway-host=0.0.0.0
+      - --contract-deployment-block=0
+      - --execution-endpoint=http://bc-node01:8551
+      - --accept-terms-of-use
+      - --jwt-secret=/execution/jwtsecret
+      - --suggested-fee-recipient=0x48deeb959d9af454ec406d2a686e50728036e19e
+      - --rpc-port=4000
+      - --disable-staking-contract-check
+      - --enable-debug-rpc-endpoints
+      - --interop-eth1data-votes=true
+      - --p2p-priv-key=/consensus/n1-p2p-priv.key
+    depends_on:
+      bc-node01:
+        condition: service_started
+    ports:
+      - 35108:8080
+    volumes:
+      - ./consensus:/consensus
+      - ./jwtsecret:/execution/jwtsecret
+
+  bc-validator-01:
+    hostname: bc-validator-01
+    container_name: bc-validator-01
+    image: "gcr.io/prysmaticlabs/prysm/validator:latest"
+    command:
+      - --beacon-rpc-provider=bc-beacon-01:4000
+      - --datadir=/consensus/validatordata
+      - --accept-terms-of-use
+      - --interop-num-validators=64
+      - --interop-start-index=0
+      - --chain-config-file=/consensus/config.yml
+      - --force-clear-db
+    depends_on:
+      bc-beacon-01:
+        condition: service_started
+    volumes:
+      - ./consensus:/consensus

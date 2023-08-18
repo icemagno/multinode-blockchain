@@ -1,0 +1,85 @@
+version: "3.0"
+
+name: node03
+
+networks:
+  default:
+    name: interna
+
+services:
+  bc-node03:
+    hostname: bc-node03
+    container_name: bc-node03
+    image: "ethereum/client-go:latest"
+    command:
+      - --http
+      - --http.api=admin,debug,web3,eth,txpool,engine,personal,net
+      - --http.addr=0.0.0.0
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --authrpc.vhosts=*
+      - --authrpc.addr=0.0.0.0
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=admin,debug,web3,eth,txpool,engine,personal,net
+      - --ws.origins=*
+      - --authrpc.jwtsecret=/execution/jwtsecret
+      - --datadir=/execution
+      - --allow-insecure-unlock
+      - --unlock=0x48deeb959d9af454ec406d2a686e50728036e19e
+      - --password=/execution/password.txt
+      - --nodiscover
+      - --syncmode=full
+      - --gcmode=archive
+      - --identity=node02
+      - --cache=4096
+      - --maxpeers=50
+      - --verbosity=5
+      - --networkid=8658
+      - --nodekeyhex=b0ac22adcad37213c7c565810a50f1772291e7b0ce53fb73e7ec2a3c75bc0003
+      - --bootnodes=enode://9883eb202e46710a6e8d3849350be48464820f18fd726f95f5b79c8a4ac19ce0e3ae647bfc1117785aad95dc61e91126a7371193c66d6219e697147aed00462f@bc-node01:30303
+    ports:
+      - 35300:8545
+      - 35301:8546
+    volumes:
+      - ./execution:/execution
+      - ./jwtsecret:/execution/jwtsecret
+      
+  bc-beacon-03:
+    hostname: bc-beacon-03
+    container_name: bc-beacon-03
+    image: "gcr.io/prysmaticlabs/prysm/beacon-chain:latest"
+    command:
+      - --datadir=/consensus/beacondata
+      - --min-sync-peers=1
+      - --genesis-state=/consensus/genesis.ssz
+      - --bootstrap-node=
+      - --chain-config-file=/consensus/config.yml
+      - --chain-id=8658
+      - --rpc-host=0.0.0.0
+      - --monitoring-host=0.0.0.0
+      - --grpc-gateway-host=0.0.0.0
+      - --contract-deployment-block=0
+      - --execution-endpoint=http://bc-node03:8551
+      - --accept-terms-of-use
+      - --jwt-secret=/execution/jwtsecret
+      - --suggested-fee-recipient=0x48deeb959d9af454ec406d2a686e50728036e19e
+      - --rpc-port=4000
+      - --disable-staking-contract-check
+      - --enable-debug-rpc-endpoints
+      - --checkpoint-sync-url=http://bc-beacon-01:3500
+      - --genesis-beacon-api-url=http://bc-beacon-01:3500
+      - --interop-eth1data-votes=true
+      - --p2p-priv-key=/consensus/n3-p2p-priv.key
+      - --peer=$N1P2PNODE
+      - --peer=$N2P2PNODE
+    depends_on:
+      bc-node03:
+        condition: service_started
+    ports:
+      - 35308:8080
+    volumes:
+      - ./consensus:/consensus
+      - ./jwtsecret:/execution/jwtsecret
+
