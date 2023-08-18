@@ -9,7 +9,7 @@ A tree nodes private blockchain
 * A Grafana panel
 * Three Execution Nodes
 * Three Consensus Nodes
-* Three Validator nodes with about 22 validator each ( 22 + 22 + 20 = total 64 )
+* Three Validator Nodes with about 22 validators each ( 22 + 22 + 20 = total 64 )
 * Local peers syncing for Executions and Beacons
 * No need validators to stake 32 ETH
 * Already created some accounts
