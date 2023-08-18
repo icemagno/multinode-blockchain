@@ -11,7 +11,6 @@ A tree nodes private blockchain
 * Three Consensus Nodes
 * Three Validator nodes with about 22 validator each ( 22 + 22 + 20 = total 64 )
 * Local peers syncing for Executions and Beacons
-* Aditional (optional) validator (will attach to consensus-02)
 * No need validators to stake 32 ETH
 * Already created some accounts
 * A lot of ETH to distribute
