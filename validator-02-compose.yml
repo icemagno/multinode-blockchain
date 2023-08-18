@@ -1,0 +1,23 @@
+version: "3.0"
+
+name: validator-02
+
+networks:
+  default:
+    name: interna
+
+services:
+  bc-validator-02:
+    hostname: bc-validator-02
+    container_name: bc-validator-02
+    image: "gcr.io/prysmaticlabs/prysm/validator:latest"
+    command:
+      - --beacon-rpc-provider=bc-beacon-02:4000
+      - --datadir=/consensus/validatordata
+      - --accept-terms-of-use
+      - --interop-num-validators=64
+      - --interop-start-index=0
+      - --chain-config-file=/consensus/config.yml
+      - --force-clear-db
+    volumes:
+      - ./consensus:/consensus

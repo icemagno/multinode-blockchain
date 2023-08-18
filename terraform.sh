@@ -66,6 +66,7 @@ gcr.io/prysmaticlabs/prysm/cmd/prysmctl:HEAD-09d761 testnet generate-genesis \
 cp node01-compose.yml ./node01
 cp node02-compose.yml ./node02
 cp node03-compose.yml ./node03
+cp validator-02-compose.yml ./node02
 
 cp ./shared/config.yml ./node01/consensus
 cp ./shared/genesis.ssz ./node01/consensus
@@ -123,7 +124,7 @@ init /datadir/genesis.json
 
 
 
-# cd ./node01 && docker compose -f node01-compose.yml up -d && cd ..
+cd ./node01 && docker compose -f node01-compose.yml up -d && cd ..
 
 echo "Node 01 P2P address: "
 echo ""
@@ -131,14 +132,14 @@ curl localhost:35108/p2p | awk -F/ip4 '{print "/ip4" $NF}' | grep tcp > n1-p2p.t
 cat n1-p2p.txt
 
 
-# cd ./node02 && docker compose -f node02-compose.yml up -d && cd ..
+cd ./node02 && docker compose -f node02-compose.yml up -d && cd ..
 
 echo "Node 02 P2P address: "
 echo ""
 curl localhost:35208/p2p | awk -F/ip4 '{print "/ip4" $NF}' | grep tcp > n2-p2p.txt
 cat n2-p2p.txt
 
-# cd ./node03 && docker compose -f node03-compose.yml up -d && cd ..
+cd ./node03 && docker compose -f node03-compose.yml up -d && cd ..
 
 echo "Node 03 P2P address: "
 echo ""
@@ -166,7 +167,9 @@ curl -vX POST 'http://localhost:35200' --header 'Content-Type: application/json'
 curl -vX POST 'http://localhost:35300' --header 'Content-Type: application/json' -d @pn1.json
 curl -vX POST 'http://localhost:35300' --header 'Content-Type: application/json' -d @pn2.json
 
-
+# OPTIONAL :
+# Run an adittional Validator to node 02:
+# cd ./node02 && docker compose -f validator-02-compose.yml up -d && cd ..
 
 
 
