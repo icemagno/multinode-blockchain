@@ -19,6 +19,8 @@ A tree nodes private blockchain
 * A hit-and-run script file (terraform.sh)
 * Easy to customize
   
+  ![eth](https://github.com/icemagno/multinode-blockchain/assets/4127512/35758a7a-ac34-4a89-bccb-5b38c02722db)
+
 ## Exposed ports
 
 The ports will follow the convention:
