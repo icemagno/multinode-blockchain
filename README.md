@@ -11,7 +11,7 @@ A tree nodes private blockchain
 * Three Consensus Nodes
 * One Validator
 * Local peers syncing for Executions and Beacons 
-* Already created some accounts - including the "dead"
+* Already created some accounts
 * A lot of ETH to distribute
 * Postman JSON file to test endpoints
 * A hit-and-run script file (terraform.sh)
