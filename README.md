@@ -47,3 +47,4 @@ Port ID:
 A port 35305 will be mapped to the port 13000 ( execution P2P TCP) of the node 03 
 
 ![portainer](https://github.com/icemagno/multinode-blockchain/assets/4127512/99b6a2a7-9652-4fe4-b4ed-52c99ad5d9e5)
+![portainer2](https://github.com/icemagno/multinode-blockchain/assets/4127512/33a65426-4497-48fe-803d-2d9e3ce5ac34)
