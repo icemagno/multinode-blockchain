@@ -19,4 +19,31 @@ A tree nodes private blockchain
 * A hit-and-run script file (terraform.sh)
 * Easy to customize
   
+## Exposed ports
 
+The ports will follow the convention:
+
+```35xYY```
+
+where 
+```
+X   = node number
+YY  = port ID
+```
+Port ID:
+
+```
+	> 00 = 8545
+	> 01 = 8546
+	> 02 = 8551
+	> 03 = 30303
+	> 04 = 12000
+	> 05 = 13000
+	> 06 = 3500
+	> 07 = 4000
+	> 08 = 8080 
+```
+
+A port 35305 will be mapped to the port 13000 ( execution P2P TCP) of the node 03 
+
+![portainer](https://github.com/icemagno/multinode-blockchain/assets/4127512/99b6a2a7-9652-4fe4-b4ed-52c99ad5d9e5)
