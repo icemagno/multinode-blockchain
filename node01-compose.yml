@@ -86,10 +86,11 @@ services:
       - --beacon-rpc-provider=bc-beacon-01:4000
       - --datadir=/consensus/validatordata
       - --accept-terms-of-use
-      - --interop-num-validators=64
+      - --interop-num-validators=22
       - --interop-start-index=0
       - --chain-config-file=/consensus/config.yml
       - --force-clear-db
+      - --graffiti=Validator-01
     depends_on:
       bc-beacon-01:
         condition: service_started

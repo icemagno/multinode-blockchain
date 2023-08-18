@@ -167,9 +167,7 @@ curl -vX POST 'http://localhost:35200' --header 'Content-Type: application/json'
 curl -vX POST 'http://localhost:35300' --header 'Content-Type: application/json' -d @pn1.json
 curl -vX POST 'http://localhost:35300' --header 'Content-Type: application/json' -d @pn2.json
 
-# OPTIONAL :
-# Run an adittional Validator to node 02:
-# cd ./node02 && docker compose -f validator-02-compose.yml up -d && cd ..
+
 
 
 

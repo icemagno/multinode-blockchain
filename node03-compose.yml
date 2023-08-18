@@ -83,3 +83,21 @@ services:
       - ./consensus:/consensus
       - ./jwtsecret:/execution/jwtsecret
 
+  bc-validator-03:
+    hostname: bc-validator-03
+    container_name: bc-validator-03
+    image: "gcr.io/prysmaticlabs/prysm/validator:latest"
+    command:
+      - --beacon-rpc-provider=bc-beacon-03:4000
+      - --datadir=/consensus/validatordata
+      - --accept-terms-of-use
+      - --interop-num-validators=20
+      - --interop-start-index=45
+      - --chain-config-file=/consensus/config.yml
+      - --force-clear-db
+      - --graffiti=Validator-03
+    depends_on:
+      bc-beacon-03:
+        condition: service_started
+    volumes:
+      - ./consensus:/consensus
