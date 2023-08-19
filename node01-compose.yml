@@ -10,7 +10,7 @@ services:
   bc-node01:
     hostname: bc-node01
     container_name: bc-node01
-    image: "ethereum/client-go:latest"
+    image: "ethereum/client-go:$GETH_VERSION"
     command:
       - --http
       - --http.api=admin,debug,web3,eth,txpool,engine,personal,net
@@ -48,7 +48,7 @@ services:
   bc-beacon-01:
     hostname: bc-beacon-01
     container_name: bc-beacon-01
-    image: "gcr.io/prysmaticlabs/prysm/beacon-chain:latest"
+    image: "gcr.io/prysmaticlabs/prysm/beacon-chain:$PRYSM_VERSION"
     command:
       - --datadir=/consensus/beacondata
       - --min-sync-peers=1
@@ -81,7 +81,7 @@ services:
   bc-validator-01:
     hostname: bc-validator-01
     container_name: bc-validator-01
-    image: "gcr.io/prysmaticlabs/prysm/validator:latest"
+    image: "gcr.io/prysmaticlabs/prysm/validator:$PRYSM_VERSION"
     command:
       - --beacon-rpc-provider=bc-beacon-01:4000
       - --datadir=/consensus/validatordata

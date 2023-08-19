@@ -1,5 +1,11 @@
 #!/bin/bash
 
+PRYSM_VERSION="HEAD-09d761"
+GETH_VERSION="alltools-v1.12.2"
+
+export PRYSM_VERSION=${PRYSM_VERSION}
+export GETH_VERSION=${GETH_VERSION}
+
 
 echo "Cleaning up images"
 
@@ -45,7 +51,7 @@ echo "Preparing RPC JWT token"
 
 docker run --rm \
 -v $(pwd)/shared:/secret \
--it gcr.io/prysmaticlabs/prysm/beacon-chain:HEAD-09d761 generate-auth-secret \
+-it gcr.io/prysmaticlabs/prysm/beacon-chain:${PRYSM_VERSION} generate-auth-secret \
 --output-file=/secret/jwtsecret
 
 echo "Generating consensus genesis file..."
@@ -55,7 +61,7 @@ docker run --rm \
 -v $(pwd)/shared/genesis.json:/genesis.json \
 -v $(pwd)/shared/config.yml:/config.yml \
 -v /etc/localtime:/etc/localtime:ro \
-gcr.io/prysmaticlabs/prysm/cmd/prysmctl:HEAD-09d761 testnet generate-genesis \
+gcr.io/prysmaticlabs/prysm/cmd/prysmctl:${PRYSM_VERSION} testnet generate-genesis \
 --fork=bellatrix \
 --num-validators=64 \
 --output-ssz=/consensus/genesis.ssz \
@@ -104,21 +110,21 @@ echo "Generating genesis block to the execution nodes..."
 docker run --rm \
 -v $(pwd)/node01/execution:/datadir \
 -v /etc/localtime:/etc/localtime:ro \
--it ethereum/client-go:alltools-v1.12.2 geth \
+-it ethereum/client-go:${GETH_VERSION} geth \
 --datadir /datadir \
 init /datadir/genesis.json
 
 docker run --rm \
 -v $(pwd)/node02/execution:/datadir \
 -v /etc/localtime:/etc/localtime:ro \
--it ethereum/client-go:alltools-v1.12.2 geth \
+-it ethereum/client-go:${GETH_VERSION} geth \
 --datadir /datadir \
 init /datadir/genesis.json 
 
 docker run --rm \
 -v $(pwd)/node03/execution:/datadir \
 -v /etc/localtime:/etc/localtime:ro \
--it ethereum/client-go:alltools-v1.12.2 geth \
+-it ethereum/client-go:${GETH_VERSION} geth \
 --datadir /datadir \
 init /datadir/genesis.json
 
