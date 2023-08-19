@@ -132,22 +132,30 @@ init /datadir/genesis.json
 
 cd ./node01 && docker compose -f node01-compose.yml up -d && cd ..
 
-echo "Node 01 P2P address: "
+echo "Waiting to node 01 brings up..."
+sleep 15
+
+echo "Consensus 01 P2P address: "
 echo ""
 curl localhost:35108/p2p | awk -F/ip4 '{print "/ip4" $NF}' | grep tcp > n1-p2p.txt
 cat n1-p2p.txt
 
-
 cd ./node02 && docker compose -f node02-compose.yml up -d && cd ..
 
-echo "Node 02 P2P address: "
+echo "Waiting to node 02 brings up..."
+sleep 15
+
+echo "Consensus 02 P2P address: "
 echo ""
 curl localhost:35208/p2p | awk -F/ip4 '{print "/ip4" $NF}' | grep tcp > n2-p2p.txt
 cat n2-p2p.txt
 
 cd ./node03 && docker compose -f node03-compose.yml up -d && cd ..
 
-echo "Node 03 P2P address: "
+echo "Waiting to node 03 brings up..."
+sleep 15
+
+echo "Consensus 03 P2P address: "
 echo ""
 curl localhost:35308/p2p | awk -F/ip4 '{print "/ip4" $NF}' | grep tcp > n3-p2p.txt
 cat n3-p2p.txt
@@ -164,7 +172,7 @@ chown suporte:suporte /home/suporte/predefined.tar.gz
 # admin.addPeer("enode://e1df03c5d090be245c96649efdac0c34199d4d7ee9bed5c61b5b092cd91d21a67a78f8bd3384dc842d4fab9bc7f61eeffdc77b9498ca7762992d3961d9d91d17@bc-node02:30303");
 # admin.addPeer("enode://96fea1f360718d24e2dd93814304a0729fe6a0f02e5c8faae1ed3bae3a835a2554e87988b1abd90e602604400c4e03d256ec9a9367c0d21c35abf8fb64b017ba@bc-node03:30303");
 
-echo "Adding peers to Execution nodes..."
+echo "Pairing Execution peers..."
 
 curl -vX POST 'http://localhost:35100' --header 'Content-Type: application/json' -d @pn2.json
 curl -vX POST 'http://localhost:35100' --header 'Content-Type: application/json' -d @pn3.json

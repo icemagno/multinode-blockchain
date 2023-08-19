@@ -41,6 +41,7 @@ services:
     ports:
       - 35100:8545
       - 35101:8546
+      - 35103:30303
     volumes:
       - ./execution:/execution
       - ./jwtsecret:/execution/jwtsecret
@@ -73,6 +74,8 @@ services:
       bc-node01:
         condition: service_started
     ports:
+      - 35104:12000
+      - 35105:13000
       - 35108:8080
     volumes:
       - ./consensus:/consensus
