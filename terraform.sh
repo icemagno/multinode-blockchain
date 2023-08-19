@@ -82,9 +82,9 @@ cp ./shared/genesis.ssz ./node02/consensus
 cp ./shared/config.yml ./node03/consensus
 cp ./shared/genesis.ssz ./node03/consensus
 
-cp ./shared/jwtsecret ./node01
-cp ./shared/jwtsecret ./node02
-cp ./shared/jwtsecret ./node03
+cp ./shared/jwtsecret ./node01/execution
+cp ./shared/jwtsecret ./node02/execution
+cp ./shared/jwtsecret ./node03/execution
 
 cp ./shared/password.txt ./node01/execution
 cp ./shared/password.txt ./node02/execution
