@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PRYSM_VERSION="HEAD-09d761"
-GETH_VERSION="alltools-v1.12.2"
+GETH_VERSION="v1.12.2"
 
 export PRYSM_VERSION=${PRYSM_VERSION}
 export GETH_VERSION=${GETH_VERSION}
@@ -108,21 +108,21 @@ echo "Generating genesis block to the execution nodes..."
 docker run --rm \
 -v $(pwd)/node01/execution:/datadir \
 -v /etc/localtime:/etc/localtime:ro \
--it ethereum/client-go:${GETH_VERSION} geth \
+-it ethereum/client-go:${GETH_VERSION} \
 --datadir /datadir \
 init /datadir/genesis.json
 
 docker run --rm \
 -v $(pwd)/node02/execution:/datadir \
 -v /etc/localtime:/etc/localtime:ro \
--it ethereum/client-go:${GETH_VERSION} geth \
+-it ethereum/client-go:${GETH_VERSION} \
 --datadir /datadir \
 init /datadir/genesis.json 
 
 docker run --rm \
 -v $(pwd)/node03/execution:/datadir \
 -v /etc/localtime:/etc/localtime:ro \
--it ethereum/client-go:${GETH_VERSION} geth \
+-it ethereum/client-go:${GETH_VERSION} \
 --datadir /datadir \
 init /datadir/genesis.json
 
@@ -138,6 +138,7 @@ echo ""
 curl localhost:35108/p2p | awk -F/ip4 '{print "/ip4" $NF}' | grep tcp > n1-p2p.txt
 cat n1-p2p.txt
 
+export N1P2PNODE=$(head -1 n1-p2p.txt)
 cd ./node02 && docker compose -f node02-compose.yml up -d && cd ..
 
 echo "Waiting to node 02 brings up..."
@@ -148,6 +149,7 @@ echo ""
 curl localhost:35208/p2p | awk -F/ip4 '{print "/ip4" $NF}' | grep tcp > n2-p2p.txt
 cat n2-p2p.txt
 
+export N2P2PNODE=$(head -1 n2-p2p.txt)
 cd ./node03 && docker compose -f node03-compose.yml up -d && cd ..
 
 echo "Waiting to node 03 brings up..."
@@ -158,8 +160,6 @@ echo ""
 curl localhost:35308/p2p | awk -F/ip4 '{print "/ip4" $NF}' | grep tcp > n3-p2p.txt
 cat n3-p2p.txt
 
-export N1P2PNODE=$(head -1 n1-p2p.txt)
-export N2P2PNODE=$(head -1 n2-p2p.txt)
 export N3P2PNODE=$(head -1 n3-p2p.txt)
 
 
