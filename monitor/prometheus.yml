@@ -14,15 +14,15 @@ scrape_configs:
     metrics_path: '/metrics'
     scrape_interval: 5s
     static_configs:
-      - targets: ['bc-exporter-01:9091']
+      - targets: ['bc-exporter-01:9090']
   - job_name: 'node02'
     metrics_path: '/metrics'
     scrape_interval: 5s
     static_configs:
-      - targets: ['bc-exporter-01:9092']
+      - targets: ['bc-exporter-02:9090']
   - job_name: 'node03'
     metrics_path: '/metrics'
     scrape_interval: 5s
     static_configs:
-      - targets: ['bc-exporter-01:9093']
+      - targets: ['bc-exporter-03:9090']
 
