@@ -5,6 +5,7 @@ name: node01
 networks:
   default:
     name: interna
+    external: true
 
 services:
   bc-node01:

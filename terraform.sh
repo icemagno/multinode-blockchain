@@ -72,7 +72,6 @@ gcr.io/prysmaticlabs/prysm/cmd/prysmctl:${PRYSM_VERSION} testnet generate-genesi
 cp node01-compose.yml ./node01
 cp node02-compose.yml ./node02
 cp node03-compose.yml ./node03
-cp validator-02-compose.yml ./node02
 
 cp ./shared/config.yml ./node01/consensus
 cp ./shared/genesis.ssz ./node01/consensus
@@ -98,7 +97,6 @@ cp -r ./shared/keystore ./node03/execution
 cp ./shared/genesis.json ./node01/execution
 cp ./shared/genesis.json ./node02/execution
 cp ./shared/genesis.json ./node03/execution
-
 
 ./genkey.sh ./node01/consensus/n1-p2p-priv.key
 ./genkey.sh ./node02/consensus/n2-p2p-priv.key
@@ -180,8 +178,4 @@ curl -vX POST 'http://localhost:35200' --header 'Content-Type: application/json'
 curl -vX POST 'http://localhost:35200' --header 'Content-Type: application/json' -d @pn3.json
 curl -vX POST 'http://localhost:35300' --header 'Content-Type: application/json' -d @pn1.json
 curl -vX POST 'http://localhost:35300' --header 'Content-Type: application/json' -d @pn2.json
-
-
-
-
 
