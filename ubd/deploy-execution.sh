@@ -15,15 +15,26 @@ echo ""
 if [ "$#" -lt 5 ]
 then
   echo "Use: ./deploy-execution.sh <NODE_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <NODE_INDEX>" 
-  echo "   Ex: ./deploy-execution.sh node-01 v1.12.2 HEAD-09d761 8658 1"
+  echo "   Ex: ./deploy-execution.sh geth-01 v1.12.2 HEAD-09d761 8658 1"
   exit 1
 fi
 
-echo "Note: If you want to add another peers to this one, please"
+echo "              --------------------------"
+echo "              -:: A.T.T.E.N.T.I.O.N ::- "
+echo "              --------------------------"
+echo ""
+echo " If you want to add another peers to this one, please"
 echo "  save all *.enode files from another hosts to the 'peers' folder"
 echo "  under this script folder."
 echo "" 
-
+echo " Be sure you have the chain genesis file here."
+echo "  - If you don't have one, you can either generate or download from "
+echo "    another chain to join it. Use 'make-genesis.sh' to generate. "
+echo ""
+echo "  - If you have one already, you can copy the ./peers directory content"
+echo "    into all nodes ./peers directories and run 'addpeers.sh' to allow"
+echo "    the nodes to sync. Better if you put it here before running this script."
+echo ""
 read -p "Press any key to continue... " -n1 -s
 
 NODE_NAME=$(pwd)/$1
@@ -40,16 +51,16 @@ mkdir ${NODE_NAME}
 TOKEN_DIR=$(pwd)/jwt-token
 JWT_FILE="${TOKEN_DIR}/jwtsecret"
 
-
 echo "Will work on these folders:"
 
 echo ${EXECUTION}
 echo ${CONSENSUS}
 echo ${JWT_FILE}
-echo ${PASSWORD_FILE}
 
 echo ""
 
+echo "Extracting genesis block..."
+tar -xf genesis-block.tar.gz -C ${NODE_NAME}
 
 if [ ! -f "$JWT_FILE" ]; then
     echo "JWT Token does not exist. Generating..."
@@ -58,22 +69,13 @@ if [ ! -f "$JWT_FILE" ]; then
 fi
 cp ${JWT_FILE} ${EXECUTION}
 
-
-PASSWORD=$(printf '%s' $(echo "$RANDOM" | md5sum) | cut -c 1-32)
-
-echo ${PASSWORD} > ${EXECUTION/password.txt}
-
-echo "Extracting genesis block..."
-tar -xf genesis-block.tar.gz -C ${NODE_NAME}
-
 NODE_KEY_FILE="${EXECUTION}/node.key"
 echo "Generating node key to ENODE static address..."
 openssl ecparam -name secp256k1 -genkey -noout | openssl ec -text -noout > keypair
 cat keypair | grep priv -A 3 | tail -n +2 | tr -d '\n[:space:]:' | sed 's/^00//' > ${NODE_KEY_FILE}
-rm -rf priv
-rm -rf keypair
-
+rm -rf priv && rm -rf keypair
 NODE_KEY_HEX=$(head -n 1 ${NODE_KEY_FILE})
+
 
 echo "Deploying Execution $1"
 
@@ -88,15 +90,20 @@ echo "P2P : $P2P_PORT as 30303"
 echo ""
 
 #HOST_IP=`ip -4 -o addr show dev eth0| awk '{split($4,a,"/");print a[1]}'`
-HOST_IP=$(curl https://api.ipify.org)
+HOST_IP=$(curl --silent https://api.ipify.org)
 
 echo "External IP is : $HOST_IP"
 echo ""
 
+# Don't know why must to unlock this wallet.
+# --unlock=0x48deeb959d9af454ec406d2a686e50728036e19e
+# --password=/execution/password.txt
+
+docker stop $1 && docker rm $1
+
 docker run --name=$1 --hostname=$1 \
 --network=interna \
 -v ${EXECUTION}:/execution \
--v /srv/blockchain/secret:/secret \
 -v /etc/localtime:/etc/localtime:ro \
 -p ${RPC_PORT}:8545 \
 -p ${WS_PORT}:8546 \
@@ -116,7 +123,6 @@ docker run --name=$1 --hostname=$1 \
 --authrpc.jwtsecret=/execution/jwtsecret \
 --datadir=/execution \
 --allow-insecure-unlock \
---password=/execution/password.txt \
 --nodiscover \
 --syncmode=full \
 --gcmode=archive \

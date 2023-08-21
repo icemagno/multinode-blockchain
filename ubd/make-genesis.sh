@@ -1,14 +1,15 @@
 #!/bin/bash
 
-if [ "$#" -lt 2 ]
+if [ "$#" -lt 3 ]
 then
   echo "Use: ./make-genesis.sh <PRYSM_VERSION> <GETH_VERSION>"
-  echo "   Ex: ./make-genesis.sh HEAD-09d761 v1.12.2"
+  echo "   Ex: ./make-genesis.sh HEAD-09d761 v1.12.2 mycoolpassword"
   exit 1
 fi
 
 PRYSM_VERSION=$1
 GETH_VERSION=$2
+PASSWORD=$3
 
 echo "Creating genesis block..."
 
@@ -42,6 +43,15 @@ docker run --rm \
 -it ethereum/client-go:${GETH_VERSION} \
 --datadir /datadir \
 init /datadir/genesis.json
+
+# PASSWORD=$(printf '%s' $(echo "$RANDOM" | md5sum) | cut -c 1-32)
+# This password will be used to unlock wallets if necessary.
+# I'll not controll that.
+# Be sure you already generated wallets in 'keystore' directory
+# using this password.
+# Some examples are using "unlock" flag to unlock some
+# wallets but I really don't know why so I'll not do it.
+# echo ${PASSWORD} > ./genesis/execution/password.txt
 
 tar -czf ./genesis-block.tar.gz -C genesis . 
 
