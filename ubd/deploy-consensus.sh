@@ -14,7 +14,9 @@ echo ""
 
 if [ "$#" -lt 6 ]
 then
-  echo "Use: ./deploy-consensus.sh <BEACON_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <BEACON_INDEX> <NODE_NAME>" 
+  echo "Use: ./deploy-consensus.sh <BEACON_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <BEACON_INDEX> <NODE_NAME> [THIS_HOST_IP]" 
+  echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 node-01 192.168.100.34"
+  echo "   or"
   echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 node-01"
   exit 1
 fi
@@ -47,6 +49,15 @@ NODE_INDEX=$5
 EXECUTION_NODE=$6
 EXECUTION=${NODE_NAME}/execution
 CONSENSUS=${NODE_NAME}/consensus
+
+# HOST_IP=`ip -4 -o addr show dev eth0| awk '{split($4,a,"/");print a[1]}'`
+# HOST_IP=$(curl --silent https://api.ipify.org)
+if [ "$#" -eq 6 ]
+then
+  HOST_IP=$6
+else
+  HOST_IP='127.0.0.1'
+fi    
 
 rm -rf ${NODE_NAME} 
 mkdir ${NODE_NAME}
@@ -83,17 +94,16 @@ echo "Deploying Beacon $1"
 
 let P2P_UDP=(35*1000+100*NODE_INDEX+4)
 let P2P_TCP=(35*1000+100*NODE_INDEX+5)
+let RPC_API=(35*1000+100*NODE_INDEX+6)
 let RPC_PORT=(35*1000+100*NODE_INDEX+8)
+
 
 echo "Exposing ports: "
 echo "P2P UDP : $P2P_UDP as 12000"
 echo "P2P TCP : $P2P_TCP as 13000"
 echo "RPC     : $RPC_PORT as 8080"
+echo "RPC API : $RPC_API as 3500"
 echo ""
-
-#HOST_IP=`ip -4 -o addr show dev eth0| awk '{split($4,a,"/");print a[1]}'`
-HOST_IP=$(curl --silent https://api.ipify.org)
-
 echo "External IP is : $HOST_IP"
 echo ""
 
@@ -109,9 +119,10 @@ docker run --name=$1 --hostname=$1 \
 -p ${P2P_UDP}:12000 \
 -p ${P2P_TCP}:13000 \
 -p ${RPC_PORT}:8080 \
+-p ${RPC_API}:3500 \
 -d gcr.io/prysmaticlabs/prysm/beacon-chain:$PRYSM_VERSION \
 --datadir=/consensus/beacondata \
---min-sync-peers=1 \
+--min-sync-peers=0 \
 --genesis-state=/consensus/genesis.ssz \
 --bootstrap-node= \
 --chain-config-file=/consensus/config.yml \
@@ -154,4 +165,7 @@ P2P_EXTERNAL=${temp/13000/"$P2P_TCP"}
 echo ${P2P_EXTERNAL} > ./peers/$1.p2p
 
 rm -f ./peers/$1.temp
-echo "Done."
+
+echo ""
+echo "Done! You may want to save the ./peers directory"
+echo "  contents to put it in another host and allow them to sync."

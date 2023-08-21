@@ -7,15 +7,24 @@ echo "*********************************"
 echo "|    EXECUTION NODE DEPLOYER    |"
 echo "*********************************"
 echo "  > Deploy a Execution Container"
-echo "  > I'll need JQ to read JSON files..."
-echo "  >   Be sure you have jq installed."
-echo "  >   Ex. apt install jq"
 echo ""
 
 if [ "$#" -lt 5 ]
 then
-  echo "Use: ./deploy-execution.sh <NODE_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <NODE_INDEX>" 
-  echo "   Ex: ./deploy-execution.sh geth-01 v1.12.2 HEAD-09d761 8658 1"
+  echo "Use: ./deploy-execution.sh <NODE_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <NODE_INDEX> [THIS_HOST_IP]" 
+  echo "   Ex: ./deploy-execution.sh geth-01 v1.12.2 HEAD-09d761 8658 1 192.168.100.34"
+  echo "   or "
+  echo "   Ex: ./deploy-execution.sh geth-01 v1.12.2 HEAD-09d761 8658 1"  
+  exit 1
+fi
+
+if ! command -v jq &> /dev/null
+then
+  echo "  > I'll need JQ to read JSON files..."
+  echo "  > Be sure you have jq installed."
+  echo "  > Ex. apt install jq"
+  echo "  > I need this to proceed. Aborting..."
+  echo ""
   exit 1
 fi
 
@@ -44,6 +53,15 @@ NETWORK_ID=$4
 NODE_INDEX=$5
 EXECUTION=${NODE_NAME}/execution
 CONSENSUS=${NODE_NAME}/consensus
+
+# HOST_IP=`ip -4 -o addr show dev eth0| awk '{split($4,a,"/");print a[1]}'`
+# HOST_IP=$(curl --silent https://api.ipify.org)
+if [ "$#" -eq 6 ]
+then
+  HOST_IP=$6
+else
+  HOST_IP='127.0.0.1'
+fi    
 
 rm -rf ${NODE_NAME} 
 mkdir ${NODE_NAME}
@@ -88,10 +106,6 @@ echo "RPC : $RPC_PORT as 8545"
 echo "WS  : $WS_PORT as 8546"
 echo "P2P : $P2P_PORT as 30303"
 echo ""
-
-#HOST_IP=`ip -4 -o addr show dev eth0| awk '{split($4,a,"/");print a[1]}'`
-HOST_IP=$(curl --silent https://api.ipify.org)
-
 echo "External IP is : $HOST_IP"
 echo ""
 
@@ -168,3 +182,6 @@ echo ${ENODE_RPC} > ./peers/$1.enode
 
 ./addpeers.sh ${RPC_PORT}
 
+echo ""
+echo "Done! You may want to save the ./peers directory"
+echo "  contents to put it in another host and allow them to sync."

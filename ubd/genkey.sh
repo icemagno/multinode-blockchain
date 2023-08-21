@@ -9,7 +9,7 @@ echo "*********************************"
 echo "  > Generate JWT RPC Token"
 echo ""
 
-if [ "$#" -lt 3 ]
+if [ "$#" -lt 2]
 then
   echo "Use: ./genkey.sh <NODE_NAME> <PRYSM_VERSION>"
   echo "   Ex: ./genkey.sh node-01 HEAD-09d761"
@@ -23,7 +23,11 @@ CONSENSUS=$(pwd)/${NODE_NAME}/consensus
 TOKEN_DIR=$(pwd)/jwt-token
 
 if [ ! -d "${TOKEN_DIR}" ]; then
-  mkdir ${TOKEN_DIR}
+  mkdir -p ${TOKEN_DIR}
+fi
+
+if [ ! -d "${CONSENSUS}" ]; then
+  mkdir -p ${CONSENSUS}
 fi
 
 echo "Preparing RPC JWT token"
