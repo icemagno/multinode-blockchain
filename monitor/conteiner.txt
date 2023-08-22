@@ -10,7 +10,7 @@
 	
 docker run --name bc-prometheus --hostname=bc-prometheus --network=interna \
 --restart=always \
--v /srv/blockchain/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml \
+-v /srv/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml \
 -v /etc/localtime:/etc/localtime:ro \
 -p 36335:9090 \
 -d prom/prometheus	
@@ -33,7 +33,7 @@ docker run --name=bc-grafana --network=interna --hostname=bc-grafana \
 //////////                   EXPORTER                   //////////
 //////////////////////////////////////////////////////////////////
 
-docker run -d --name bc-exporter-01 --hostname=bc-exporter-01 \
+docker run -d --name bc-exporter --hostname=bc-exporter \
 --network=interna \
 --restart=always \
 -v /etc/localtime:/etc/localtime:ro \
@@ -55,11 +55,11 @@ ethpandaops/ethereum-metrics-exporter \
 
 //////////////////////////////////////////////////////////////////
 
-docker run -d --name bc-exporter-03 --hostname=bc-exporter-03 \
+docker run -d --name bc-exporter --hostname=bc-exporter \
 --network=interna \
 --restart=always \
 -p 9093:9090 \
 -v /etc/localtime:/etc/localtime:ro \
 ethpandaops/ethereum-metrics-exporter \
---consensus-url=http://bc-beacon-03:3500 \
---execution-url=http://bc-node03:8545
+--consensus-url=http://beacon-1:3500 \
+--execution-url=http://geth-1:8545
