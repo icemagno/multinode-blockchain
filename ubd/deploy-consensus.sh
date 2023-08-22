@@ -21,9 +21,6 @@ then
   exit 1
 fi
 
-echo ""
-read -p "Press any key to continue... " -n1 -s
-
 CONTAINER_NAME=$1
 GETH_VERSION=$2
 PRYSM_VERSION=$3
@@ -93,18 +90,14 @@ echo ""
 
 docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
 
-
-
 PEER_LIST=""
 for entry in ./peers/*.p2p
 do
    P2P_ADDRESS=$(head -1 $entry)
    if [[ $P2P_ADDRESS == *"/ip4/"* ]]; then
-     PEER_LIST=" $PEER_LIST --peer $P2P_ADDRESS "
+    PEER_LIST=" $PEER_LIST --peer $P2P_ADDRESS "
    fi
 done
-
-#PEER_LIST="$PEER_LIST "
 
 docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \
@@ -133,13 +126,10 @@ docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --enable-debug-rpc-endpoints \
 --p2p-priv-key=/consensus/priv.key ${PEER_LIST} --suggested-fee-recipient=0x48deeb959d9af454ec406d2a686e50728036e19e
 
-
-
 echo "Waiting to beacon brings up..."
 sleep 5
 
 echo "Taking ENODE address..."
-
 if [ ! -d "./peers" ]; then
   mkdir ./peers
 fi
@@ -152,7 +142,7 @@ curl \
 ${P2P_API} | awk -F/tcp '{print "/tcp" $NF}' | grep p2p > ./peers/$CONTAINER_NAME.temp
 
 P2P_ADDRESS=$(head -1 ./peers/$CONTAINER_NAME.temp)
-temp=("/ip4/"${HOST_IP}${P2P_ADDRESS})
+temp=(${RPC_API}"/ip4/"${HOST_IP}${P2P_ADDRESS})
 
 P2P_EXTERNAL=${temp/13000/"$P2P_TCP"}
 
@@ -160,6 +150,27 @@ echo ${P2P_EXTERNAL} > ./peers/$CONTAINER_NAME.p2p
 
 rm -f ./peers/$CONTAINER_NAME.temp
 
+echo "Registering peers..."
+
+for entry in "$search_dir"/*.p2p
+do
+   P2P_ADDRESS=$(head -1 $entry)
+   if [[ $P2P_ADDRESS == *"/ip4/"* ]]; then
+     IFS='/' read -r -a ARRAY_ADDRESS <<< "$P2P_ADDRESS"
+     PORTA_RPC=${ARRAY_ADDRESS[0]}
+     PEER=/${ARRAY_ADDRESS[1]}/${ARRAY_ADDRESS[2]}/${ARRAY_ADDRESS[3]}/${ARRAY_ADDRESS[4]}/${ARRAY_ADDRESS[5]}${ARRAY_ADDRESS[6]}
+     REMOTE_IP=${ARRAY_ADDRESS[2]}
+     URL="http://"${REMOTE_IP}:${PORTA_RPC}"/prysm/node/trusted_peers"
+     DATA=" {\"addr\":\""${PEER}"\"}"
+     curl \
+	     ${URL} \
+	     -X POST \
+	     -H "Content-Type: application/json" \
+	     -d '{"addr":"${PEER}"}'	
+   fi
+done
+
 echo ""
 echo "Done! You may want to save the ./peers directory"
 echo "  contents to put it in another host and allow them to sync."
+

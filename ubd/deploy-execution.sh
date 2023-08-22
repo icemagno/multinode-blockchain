@@ -28,9 +28,6 @@ then
   exit 1
 fi
 
-echo ""
-read -p "Press any key to continue... " -n1 -s
-
 CONTAINER_NAME=$1
 GETH_VERSION=$2
 PRYSM_VERSION=$3
@@ -209,7 +206,14 @@ ENODE_RPC='{
 }'
 echo ${ENODE_RPC} > ./peers/$CONTAINER_NAME.enode
 
-./addpeers.sh ${RPC_PORT}
+echo "Registering peers..." 
+
+search_dir=./peers
+for entry in "$search_dir"/*.enode
+do
+  echo "$entry"
+  curl --silent -X POST http://localhost:${RPC_PORT} --header 'Content-Type: application/json' -d @$entry
+done
 
 echo ""
 echo "Done! You may want to save the ./peers directory"
