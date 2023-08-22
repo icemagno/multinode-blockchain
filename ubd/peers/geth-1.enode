@@ -1,0 +1,1 @@
+{ "jsonrpc": "2.0", "method": "admin_addPeer", "id": 1, "params": [ "enode://78555712157ef63be66141edcfd8f5e12e03a693d811a4c4ca37450129e452ee1a6f2a4c72131684c898691aa413d1712389382fb2107cd52672e0ff80064346@189.126.111.246:35103?discport=0" ] }

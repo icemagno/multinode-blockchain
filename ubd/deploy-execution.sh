@@ -62,6 +62,13 @@ then
 else
   HOST_IP='127.0.0.1'
 fi    
+echo ""
+echo $1
+echo $GETH_VERSION
+echo $PRYSM_VERSION
+echo $NETWORK_ID
+echo $NODE_INDEX
+echo $HOST_IP
 
 rm -rf ${NODE_NAME} 
 mkdir ${NODE_NAME}
@@ -96,6 +103,7 @@ NODE_KEY_HEX=$(head -n 1 ${NODE_KEY_FILE})
 
 
 echo "Deploying Execution $1"
+echo " Node index $NODE_INDEX"
 
 let RPC_PORT=(35*1000+100*NODE_INDEX)
 let WS_PORT=(35*1000+100*NODE_INDEX+1)

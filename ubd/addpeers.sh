@@ -22,7 +22,7 @@ search_dir=./peers
 for entry in "$search_dir"/*.enode
 do
   echo "$entry"
-  curl -X POST http://localhost:${RPC_PORT} --header 'Content-Type: application/json' -d @$entry
+  curl --silent -X POST http://localhost:${RPC_PORT} --header 'Content-Type: application/json' -d @$entry
 done
 
 

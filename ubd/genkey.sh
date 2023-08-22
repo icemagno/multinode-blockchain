@@ -9,7 +9,7 @@ echo "*********************************"
 echo "  > Generate JWT RPC Token"
 echo ""
 
-if [ "$#" -lt 2]
+if [ "$#" -lt 2 ]
 then
   echo "Use: ./genkey.sh <NODE_NAME> <PRYSM_VERSION>"
   echo "   Ex: ./genkey.sh node-01 HEAD-09d761"

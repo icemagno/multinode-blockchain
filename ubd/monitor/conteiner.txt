@@ -1,0 +1,65 @@
+# https://github.com/ethpandaops/ethereum-metrics-exporter
+# https://grafana.com/grafana/dashboards/16277-ethereum-metrics-exporter-single/
+# https://docs.prylabs.network/docs/prysm-usage/monitoring/grafana-dashboard
+	
+	
+//////////////////////////////////////////////////////////////////
+//////////                PROMETHEUS                    //////////
+//////////////////////////////////////////////////////////////////
+	
+	
+docker run --name bc-prometheus --hostname=bc-prometheus --network=interna \
+--restart=always \
+-v /srv/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml \
+-v /etc/localtime:/etc/localtime:ro \
+-p 36335:9090 \
+-d prom/prometheus	
+	
+	
+//////////////////////////////////////////////////////////////////
+//////////                   GRAFANA                    //////////
+//////////////////////////////////////////////////////////////////
+	
+	
+docker run --name=bc-grafana --network=interna --hostname=bc-grafana \
+--restart=always \
+-e GF_SECURITY_ADMIN_PASSWORD=cometa \
+-v /etc/localtime:/etc/localtime:ro \
+-p 36336:3000 \
+-d grafana/grafana	
+	
+	
+//////////////////////////////////////////////////////////////////
+//////////                   EXPORTER                   //////////
+//////////////////////////////////////////////////////////////////
+
+docker run -d --name bc-exporter --hostname=bc-exporter \
+--network=interna \
+--restart=always \
+-v /etc/localtime:/etc/localtime:ro \
+-p 9091:9090 \
+ethpandaops/ethereum-metrics-exporter \
+--consensus-url=http://bc-beacon-01:3500 \
+--execution-url=http://bc-node01:8545
+
+//////////////////////////////////////////////////////////////////
+
+docker run -d --name bc-exporter-02 --hostname=bc-exporter-02 \
+--network=interna \
+--restart=always \
+-p 9092:9090 \
+-v /etc/localtime:/etc/localtime:ro \
+ethpandaops/ethereum-metrics-exporter \
+--consensus-url=http://bc-beacon-02:3500 \
+--execution-url=http://bc-node02:8545
+
+//////////////////////////////////////////////////////////////////
+
+docker run -d --name bc-exporter --hostname=bc-exporter \
+--network=interna \
+--restart=always \
+-p 9093:9090 \
+-v /etc/localtime:/etc/localtime:ro \
+ethpandaops/ethereum-metrics-exporter \
+--consensus-url=http://beacon-1:3500 \
+--execution-url=http://geth-1:8545

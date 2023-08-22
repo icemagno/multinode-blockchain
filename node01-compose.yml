@@ -53,7 +53,7 @@ services:
     image: "gcr.io/prysmaticlabs/prysm/beacon-chain:$PRYSM_VERSION"
     command:
       - --datadir=/consensus/beacondata
-      - --min-sync-peers=1
+      - --min-sync-peers=0
       - --genesis-state=/consensus/genesis.ssz
       - --bootstrap-node=
       - --chain-config-file=/consensus/config.yml

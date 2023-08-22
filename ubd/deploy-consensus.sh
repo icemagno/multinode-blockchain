@@ -109,6 +109,7 @@ echo ""
 
 # --suggested-fee-recipient=0x48deeb959d9af454ec406d2a686e50728036e19e
 # --rpc-port=4000
+# --interop-eth1data-votes=true \
 
 docker stop $1 && docker rm $1
 
@@ -136,13 +137,13 @@ docker run --name=$1 --hostname=$1 \
 --jwt-secret=/consensus/jwtsecret \
 --disable-staking-contract-check \
 --enable-debug-rpc-endpoints \
---interop-eth1data-votes=true \
---p2p-priv-key=/consensus/priv.key
+--p2p-priv-key=/consensus/priv.key \
+--suggested-fee-recipient=0x48deeb959d9af454ec406d2a686e50728036e19e
 # --peer value
 # --peer value
 
 echo "Waiting to beacon brings up..."
-sleep 15
+sleep 5
 
 echo "Taking ENODE address..."
 
