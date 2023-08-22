@@ -90,15 +90,6 @@ echo ""
 
 docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
 
-PEER_LIST=""
-for entry in ./peers/*.p2p
-do
-   P2P_ADDRESS=$(head -1 $entry)
-   if [[ $P2P_ADDRESS == *"/ip4/"* ]]; then
-    PEER_LIST=" $PEER_LIST --peer $P2P_ADDRESS "
-   fi
-done
-
 docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \
 -v ${CONSENSUS}:/consensus \
