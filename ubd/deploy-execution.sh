@@ -28,21 +28,6 @@ then
   exit 1
 fi
 
-echo "              --------------------------"
-echo "              -:: A.T.T.E.N.T.I.O.N ::- "
-echo "              --------------------------"
-echo ""
-echo " If you want to add another peers to this one, please"
-echo "  save all *.enode files from another hosts to the 'peers' folder"
-echo "  under this script folder."
-echo "" 
-echo " Be sure you have the chain genesis file here."
-echo "  - If you don't have one, you can either generate or download from "
-echo "    another chain to join it. Use 'make-genesis.sh' to generate. "
-echo ""
-echo "  - If you have one already, you can copy the ./peers directory content"
-echo "    into all nodes ./peers directories and run 'addpeers.sh' to allow"
-echo "    the nodes to sync. Better if you put it here before running this script."
 echo ""
 read -p "Press any key to continue... " -n1 -s
 

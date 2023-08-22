@@ -1,16 +1,30 @@
 #!/bin/bash
 
+if [ "$#" -lt 3 ]
+then
+  echo "Use: ./deploy-exporter.sh <GETH_NAME> <BEACON_NAME> <INDEX>" 
+  echo "   Ex: ./deploy-exporter.sh geth-01 beacon-01 1"
+  exit 1
+fi
+echo ""
 
-NODE_NAME=$1
+GETH_NAME=$1
 BEACON_NAME=$2
+EXPORTER_INDEX=$3
 
-docker stop bc-exporter && docker rm bc-exporter
+CONTAINER_NAME=("bc-exporter-$EXPORTER_INDEX")
 
-docker run -d --name=bc-exporter --hostname=bc-exporter \
+let PORT=(9*1000+100*EXPORTER_INDEX)
+
+echo "Will use port "${PORT}
+
+docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
+
+docker run -d --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \
 --restart=always \
--p 9093:9090 \
+-p ${PORT}:9090 \
 -v /etc/localtime:/etc/localtime:ro \
 ethpandaops/ethereum-metrics-exporter \
 --consensus-url=http://${BEACON_NAME}:3500 \
---execution-url=http://${NODE_NAME}:8545
+--execution-url=http://${GETH_NAME}:8545

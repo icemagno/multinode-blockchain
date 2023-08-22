@@ -21,23 +21,6 @@ then
   exit 1
 fi
 
-echo "              --------------------------"
-echo "              -:: A.T.T.E.N.T.I.O.N ::- "
-echo "              --------------------------"
-echo ""
-echo " If you want to add another peers to this one, please"
-echo "  save all *.enode files from another hosts to the 'peers' folder"
-echo "  under this script folder."
-echo "" 
-echo " Be sure you have the chain genesis file here."
-echo "  - If you don't have one, you can either generate or download from "
-echo "    another chain to join it. Use 'make-genesis.sh' to generate. "
-echo ""
-echo " If you have any *.p2p file from another consensus node inside ./peers "
-echo "   directory, you can edit this file and add as many '--peer=' option"
-echo "   as you have <CONSENSUS_NODE>.p2p files in docker run command here." 
-echo ""
-echo " I hope the execution container is already running at http://$6:8551 ... " 
 echo ""
 read -p "Press any key to continue... " -n1 -s
 
@@ -110,6 +93,19 @@ echo ""
 
 docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
 
+
+
+PEER_LIST=""
+for entry in ./peers/*.p2p
+do
+   P2P_ADDRESS=$(head -1 $entry)
+   if [[ $P2P_ADDRESS == *"/ip4/"* ]]; then
+     PEER_LIST=" $PEER_LIST --peer $P2P_ADDRESS "
+   fi
+done
+
+#PEER_LIST="$PEER_LIST "
+
 docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \
 -v ${CONSENSUS}:/consensus \
@@ -135,10 +131,9 @@ docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --jwt-secret=/execution/jwtsecret \
 --disable-staking-contract-check \
 --enable-debug-rpc-endpoints \
---p2p-priv-key=/consensus/priv.key \
---suggested-fee-recipient=0x48deeb959d9af454ec406d2a686e50728036e19e
-# --peer value
-# --peer value
+--p2p-priv-key=/consensus/priv.key ${PEER_LIST} --suggested-fee-recipient=0x48deeb959d9af454ec406d2a686e50728036e19e
+
+
 
 echo "Waiting to beacon brings up..."
 sleep 5
