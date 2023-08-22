@@ -36,7 +36,7 @@ docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --beacon-rpc-provider=${BEACON_NODE}:4000 \
 --datadir=/consensus/validatordata \
 --accept-terms-of-use \
---interop-num-validators=5 \
+--interop-num-validators=32 \
 --interop-start-index=0 \
 --chain-config-file=/consensus/config.yml \
 --force-clear-db \

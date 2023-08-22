@@ -129,29 +129,9 @@ docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 echo "Waiting to beacon brings up..."
 sleep 5
 
-echo "Taking ENODE address..."
-if [ ! -d "./peers" ]; then
-  mkdir ./peers
-fi
-
-rm -f ./peers/$CONTAINER_NAME.p2p
-
-P2P_API=("http://localhost:$RPC_PORT/p2p")
-
-curl \
-${P2P_API} | awk -F/tcp '{print "/tcp" $NF}' | grep p2p > ./peers/$CONTAINER_NAME.temp
-
-P2P_ADDRESS=$(head -1 ./peers/$CONTAINER_NAME.temp)
-temp=(${RPC_API}"/ip4/"${HOST_IP}${P2P_ADDRESS})
-
-P2P_EXTERNAL=${temp/13000/"$P2P_TCP"}
-
-echo ${P2P_EXTERNAL} > ./peers/$CONTAINER_NAME.p2p
-
-rm -f ./peers/$CONTAINER_NAME.temp
 
 echo "Registering peers..."
-
+search_dir=./peers
 for entry in "$search_dir"/*.p2p
 do
    P2P_ADDRESS=$(head -1 $entry)
@@ -166,9 +146,22 @@ do
 	     ${URL} \
 	     -X POST \
 	     -H "Content-Type: application/json" \
-	     -d '{"addr":"${PEER}"}'	
+	     -d ${DATA}	
    fi
 done
+
+
+echo "Saving my own peer connection info so you can use it to connect to others..."
+rm -f ./peers/$CONTAINER_NAME.p2p
+P2P_API=("http://localhost:$RPC_PORT/p2p")
+curl \
+${P2P_API} | awk -F/tcp '{print "/tcp" $NF}' | grep p2p > ./peers/$CONTAINER_NAME.temp
+P2P_ADDRESS=$(head -1 ./peers/$CONTAINER_NAME.temp)
+temp=(${RPC_API}"/ip4/"${HOST_IP}${P2P_ADDRESS})
+P2P_EXTERNAL=${temp/13000/"$P2P_TCP"}
+echo ${P2P_EXTERNAL} > ./peers/$CONTAINER_NAME.p2p
+rm -f ./peers/$CONTAINER_NAME.temp
+
 
 echo ""
 echo "Done! You may want to save the ./peers directory"
