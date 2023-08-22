@@ -11,7 +11,7 @@ echo ""
 
 if [ "$#" -lt 5 ]
 then
-  echo "Use: ./deploy-execution.sh <NODE_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <NODE_INDEX> [THIS_HOST_IP]" 
+  echo "Use: ./deploy-execution.sh <NODE_DIR> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <NODE_INDEX> [THIS_HOST_IP]" 
   echo "   Ex: ./deploy-execution.sh geth-01 v1.12.2 HEAD-09d761 8658 1 192.168.100.34"
   echo "   or "
   echo "   Ex: ./deploy-execution.sh geth-01 v1.12.2 HEAD-09d761 8658 1"  
@@ -46,13 +46,18 @@ echo "    the nodes to sync. Better if you put it here before running this scrip
 echo ""
 read -p "Press any key to continue... " -n1 -s
 
-NODE_NAME=$(pwd)/$1
+CONTAINER_NAME=$1
 GETH_VERSION=$2
 PRYSM_VERSION=$3
 NETWORK_ID=$4
 NODE_INDEX=$5
-EXECUTION=${NODE_NAME}/execution
-CONSENSUS=${NODE_NAME}/consensus
+NODE_NAME=("node-$NODE_INDEX")
+NODE_DIR=$(pwd)/${NODE_NAME}
+EXECUTION=${NODE_DIR}/execution
+CONSENSUS=${NODE_DIR}/consensus
+TOKEN_DIR=${EXECUTION}
+JWT_FILE="${TOKEN_DIR}/jwtsecret"
+NODE_KEY_FILE="${EXECUTION}/node.key"
 
 # HOST_IP=`ip -4 -o addr show dev eth0| awk '{split($4,a,"/");print a[1]}'`
 # HOST_IP=$(curl --silent https://api.ipify.org)
@@ -63,46 +68,77 @@ else
   HOST_IP='127.0.0.1'
 fi    
 echo ""
-echo $1
+
+echo $NODE_NAME
+echo $NODE_DIR
 echo $GETH_VERSION
 echo $PRYSM_VERSION
 echo $NETWORK_ID
 echo $NODE_INDEX
 echo $HOST_IP
+echo $EXECUTION
+echo $CONSENSUS
+echo $TOKEN_DIR
+echo $JWT_FILE
+echo $NODE_KEY_FILE
 
-rm -rf ${NODE_NAME} 
-mkdir ${NODE_NAME}
-
-TOKEN_DIR=$(pwd)/jwt-token
-JWT_FILE="${TOKEN_DIR}/jwtsecret"
-
-echo "Will work on these folders:"
-
-echo ${EXECUTION}
-echo ${CONSENSUS}
-echo ${JWT_FILE}
+rm -rf ${NODE_DIR} 
+mkdir -p ${NODE_DIR}
+mkdir -p ${CONSENSUS}
+mkdir -p ${EXECUTION}
 
 echo ""
 
-echo "Extracting genesis block..."
-tar -xf genesis-block.tar.gz -C ${NODE_NAME}
+if [ -f "./genesis-block.tar.gz" ]; 
+then
+  echo "Extracting genesis block..."
+  tar -xf genesis-block.tar.gz -C ${NODE_DIR}
+else  
+  echo "Genesis block not found. Creating a new one..."
+  cp ./config/genesis.json ${EXECUTION}
+  cp ./config/config.yml ${CONSENSUS}
+  cp -r ./config/keystore ${EXECUTION}
+  docker run --rm \
+  -v ${NODE_DIR}/execution:/execution \
+  -v ${NODE_DIR}/consensus:/consensus \
+  -v /etc/localtime:/etc/localtime:ro \
+  gcr.io/prysmaticlabs/prysm/cmd/prysmctl:${PRYSM_VERSION} testnet generate-genesis \
+  --fork=bellatrix \
+  --num-validators=64 \
+  --output-ssz=/consensus/genesis.ssz \
+  --chain-config-file=/consensus/config.yml \
+  --geth-genesis-json-in=/execution/genesis.json \
+  --geth-genesis-json-out=/execution/genesis.json
 
-if [ ! -f "$JWT_FILE" ]; then
+  docker run --rm \
+  -v ${NODE_DIR}/execution:/datadir \
+  -v /etc/localtime:/etc/localtime:ro \
+  -it ethereum/client-go:${GETH_VERSION} \
+  --datadir /datadir \
+  init /datadir/genesis.json
+
+  tar -czf ./genesis-block.tar.gz -C ${NODE_DIR} . 
+  echo "Done. Your genesis block was also saved in genesis-block.tar.gz"
+
+fi
+
+if [ ! -f "$JWT_FILE" ]; 
+then
     echo "JWT Token does not exist. Generating..."
-    ./genkey.sh $1 ${PRYSM_VERSION} 
+    docker run --rm \
+    -v ${TOKEN_DIR}:/execution \
+    -it gcr.io/prysmaticlabs/prysm/beacon-chain:${PRYSM_VERSION} generate-auth-secret \
+    --output-file=/execution/jwtsecret
     echo "Done."
 fi
-cp ${JWT_FILE} ${EXECUTION}
 
-NODE_KEY_FILE="${EXECUTION}/node.key"
 echo "Generating node key to ENODE static address..."
 openssl ecparam -name secp256k1 -genkey -noout | openssl ec -text -noout > keypair
 cat keypair | grep priv -A 3 | tail -n +2 | tr -d '\n[:space:]:' | sed 's/^00//' > ${NODE_KEY_FILE}
 rm -rf priv && rm -rf keypair
 NODE_KEY_HEX=$(head -n 1 ${NODE_KEY_FILE})
 
-
-echo "Deploying Execution $1"
+echo "Deploying Execution $CONTAINER_NAME"
 echo " Node index $NODE_INDEX"
 
 let RPC_PORT=(35*1000+100*NODE_INDEX)
@@ -121,9 +157,9 @@ echo ""
 # --unlock=0x48deeb959d9af454ec406d2a686e50728036e19e
 # --password=/execution/password.txt
 
-docker stop $1 && docker rm $1
+docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
 
-docker run --name=$1 --hostname=$1 \
+docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \
 -v ${EXECUTION}:/execution \
 -v /etc/localtime:/etc/localtime:ro \
@@ -148,7 +184,7 @@ docker run --name=$1 --hostname=$1 \
 --nodiscover \
 --syncmode=full \
 --gcmode=archive \
---identity=$1 \
+--identity=${CONTAINER_NAME} \
 --cache=4096 \
 --maxpeers=50 \
 --verbosity=5 \
@@ -165,17 +201,17 @@ echo "Taking ENODE address..."
 if [ ! -d "./peers" ]; then
   mkdir ./peers
 fi
-rm -f ./peers/$1.nodeinfo
-rm -f ./peers/$1.enode
+rm -f ./peers/$CONTAINER_NAME.nodeinfo
+rm -f ./peers/$CONTAINER_NAME.enode
 
 curl --silent \
 -X POST \
 -H "Content-Type: application/json" \
 --data '{"jsonrpc": "2.0", "id": 1, "method": "admin_nodeInfo", "params": []}' \
 http://localhost:${RPC_PORT} \
--o ./peers/$1.nodeinfo
+-o ./peers/$CONTAINER_NAME.nodeinfo
 
-temp=`cat peers/$1.nodeinfo | jq -r '.result.enode'`
+temp=`cat peers/$CONTAINER_NAME.nodeinfo | jq -r '.result.enode'`
 ENODE_ADDR=${temp/30303/"$P2P_PORT"}
 
 ENODE_RPC='{
@@ -186,7 +222,7 @@ ENODE_RPC='{
         "'$ENODE_ADDR'"
     ]
 }'
-echo ${ENODE_RPC} > ./peers/$1.enode
+echo ${ENODE_RPC} > ./peers/$CONTAINER_NAME.enode
 
 ./addpeers.sh ${RPC_PORT}
 

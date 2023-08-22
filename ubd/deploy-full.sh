@@ -11,9 +11,6 @@ then
 fi
 
 echo ""
-echo ""
-echo " THIS WILL ERASE ALL THIS NODE DATA !! " 
-echo ""
 read -p "Press any key to continue... " -n1 -s
 echo ""
 
@@ -29,12 +26,6 @@ VALIDATOR_NAME=("validator-$NODE_INDEX")
 docker stop ${NODE_NAME} && docker rm ${NODE_NAME}
 docker stop ${BEACON_NAME} && docker rm ${BEACON_NAME}
 docker stop ${VALIDATOR_NAME} && docker rm ${VALIDATOR_NAME}
-
-rm -rf jwt-token/
-rm -rf peers/
-rm -rf ${NODE_NAME}
-rm -rf ${BEACON_NAME}
-rm -rf ${VALIDATOR_NAME}
 
 if [ "$#" -eq 5 ]
 then

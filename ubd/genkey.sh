@@ -30,12 +30,6 @@ if [ ! -d "${CONSENSUS}" ]; then
   mkdir -p ${CONSENSUS}
 fi
 
-echo "Preparing RPC JWT token"
-docker run --rm \
--v ${TOKEN_DIR}:/execution \
--it gcr.io/prysmaticlabs/prysm/beacon-chain:${PRYSM_VERSION} generate-auth-secret \
---output-file=/execution/jwtsecret
-
 
 if [ ! -d "${CONSENSUS}" ]; then
   mkdir ${CONSENSUS}

@@ -14,10 +14,10 @@ echo ""
 
 if [ "$#" -lt 6 ]
 then
-  echo "Use: ./deploy-consensus.sh <BEACON_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <BEACON_INDEX> <NODE_NAME> [THIS_HOST_IP]" 
-  echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 node-01 192.168.100.34"
+  echo "Use: ./deploy-consensus.sh <BEACON_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <BEACON_INDEX> <EXECUTION_NAME> [THIS_HOST_IP]" 
+  echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 geth-01 192.168.100.34"
   echo "   or"
-  echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 node-01"
+  echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 geth-01"
   exit 1
 fi
 
@@ -41,47 +41,46 @@ echo " I hope the execution container is already running at http://$6:8551 ... "
 echo ""
 read -p "Press any key to continue... " -n1 -s
 
-NODE_NAME=$(pwd)/$1
+CONTAINER_NAME=$1
 GETH_VERSION=$2
 PRYSM_VERSION=$3
 NETWORK_ID=$4
 NODE_INDEX=$5
-EXECUTION_NODE=$6
-EXECUTION=${NODE_NAME}/execution
-CONSENSUS=${NODE_NAME}/consensus
+EXECUTION_NAME=$6
+NODE_NAME=("node-$NODE_INDEX")
+NODE_DIR=$(pwd)/${NODE_NAME}
+EXECUTION=${NODE_DIR}/execution
+CONSENSUS=${NODE_DIR}/consensus
+TOKEN_DIR=${EXECUTION}
+JWT_FILE="${TOKEN_DIR}/jwtsecret"
 
 # HOST_IP=`ip -4 -o addr show dev eth0| awk '{split($4,a,"/");print a[1]}'`
 # HOST_IP=$(curl --silent https://api.ipify.org)
-if [ "$#" -eq 6 ]
+if [ "$#" -eq 7 ]
 then
-  HOST_IP=$6
+  HOST_IP=$7
 else
   HOST_IP='127.0.0.1'
 fi    
 
-rm -rf ${NODE_NAME} 
-mkdir ${NODE_NAME}
-
-TOKEN_DIR=$(pwd)/jwt-token
-JWT_FILE="${TOKEN_DIR}/jwtsecret"
-
-echo "Will work on these folders:"
-
-echo ${EXECUTION}
-echo ${CONSENSUS}
-echo ${JWT_FILE}
-
-echo ""
-
-echo "Extracting genesis block..."
-tar -xf genesis-block.tar.gz -C ${NODE_NAME}
+echo $NODE_NAME
+echo $NODE_DIR
+echo $GETH_VERSION
+echo $PRYSM_VERSION
+echo $NETWORK_ID
+echo $NODE_INDEX
+echo $HOST_IP
+echo $EXECUTION_NAME
+echo $EXECUTION
+echo $CONSENSUS
+echo $TOKEN_DIR
+echo $JWT_FILE
 
 if [ ! -f "$JWT_FILE" ]; then
     echo "JWT Token does not exist."
     echo "  Make sure you have a Execution Container deployed here."
     exit 1
 fi
-cp ${JWT_FILE} ${CONSENSUS}
 
 NODE_KEY_FILE="${CONSENSUS}/priv.key"
 echo "Generating P2P Private Key..."
@@ -89,14 +88,12 @@ openssl ecparam -name secp256k1 -genkey -noout | openssl ec -text -noout > keypa
 cat keypair | grep priv -A 3 | tail -n +2 | tr -d '\n[:space:]:' | sed 's/^00//' > ${NODE_KEY_FILE}
 rm -rf priv && rm -rf keypair
 
-
-echo "Deploying Beacon $1"
+echo "Deploying Beacon $CONTAINER_NAME"
 
 let P2P_UDP=(35*1000+100*NODE_INDEX+4)
 let P2P_TCP=(35*1000+100*NODE_INDEX+5)
 let RPC_API=(35*1000+100*NODE_INDEX+6)
 let RPC_PORT=(35*1000+100*NODE_INDEX+8)
-
 
 echo "Exposing ports: "
 echo "P2P UDP : $P2P_UDP as 12000"
@@ -111,11 +108,12 @@ echo ""
 # --rpc-port=4000
 # --interop-eth1data-votes=true \
 
-docker stop $1 && docker rm $1
+docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
 
-docker run --name=$1 --hostname=$1 \
+docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \
 -v ${CONSENSUS}:/consensus \
+-v ${EXECUTION}:/execution \
 -v /etc/localtime:/etc/localtime:ro \
 -p ${P2P_UDP}:12000 \
 -p ${P2P_TCP}:13000 \
@@ -132,9 +130,9 @@ docker run --name=$1 --hostname=$1 \
 --monitoring-host=0.0.0.0 \
 --grpc-gateway-host=0.0.0.0 \
 --contract-deployment-block=0 \
---execution-endpoint=http://${EXECUTION_NODE}:8551 \
+--execution-endpoint=http://${EXECUTION_NAME}:8551 \
 --accept-terms-of-use \
---jwt-secret=/consensus/jwtsecret \
+--jwt-secret=/execution/jwtsecret \
 --disable-staking-contract-check \
 --enable-debug-rpc-endpoints \
 --p2p-priv-key=/consensus/priv.key \
@@ -151,21 +149,21 @@ if [ ! -d "./peers" ]; then
   mkdir ./peers
 fi
 
-rm -f ./peers/$1.p2p
+rm -f ./peers/$CONTAINER_NAME.p2p
 
 P2P_API=("http://localhost:$RPC_PORT/p2p")
 
 curl \
-${P2P_API} | awk -F/tcp '{print "/tcp" $NF}' | grep p2p > ./peers/$1.temp
+${P2P_API} | awk -F/tcp '{print "/tcp" $NF}' | grep p2p > ./peers/$CONTAINER_NAME.temp
 
-P2P_ADDRESS=$(head -1 ./peers/$1.temp)
+P2P_ADDRESS=$(head -1 ./peers/$CONTAINER_NAME.temp)
 temp=("/ip4/"${HOST_IP}${P2P_ADDRESS})
 
 P2P_EXTERNAL=${temp/13000/"$P2P_TCP"}
 
-echo ${P2P_EXTERNAL} > ./peers/$1.p2p
+echo ${P2P_EXTERNAL} > ./peers/$CONTAINER_NAME.p2p
 
-rm -f ./peers/$1.temp
+rm -f ./peers/$CONTAINER_NAME.temp
 
 echo ""
 echo "Done! You may want to save the ./peers directory"

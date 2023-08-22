@@ -16,30 +16,27 @@ then
   exit 1
 fi
 
-NODE_NAME=$(pwd)/$1
+CONTAINER_NAME=$1
 PRYSM_VERSION=$2
 NODE_INDEX=$3
 BEACON_NODE=$4
-EXECUTION=${NODE_NAME}/execution
-CONSENSUS=${NODE_NAME}/consensus
+NODE_NAME=("node-$NODE_INDEX")
+NODE_DIR=$(pwd)/${NODE_NAME}
+EXECUTION=${NODE_DIR}/execution
+CONSENSUS=${NODE_DIR}/consensus
 
-rm -rf ${NODE_NAME} 
-mkdir ${NODE_NAME}
+docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
 
-echo "Extracting genesis block..."
-tar -xf genesis-block.tar.gz -C ${NODE_NAME}
-
-docker stop $1 && docker rm $1
-
-docker run --name=$1 --hostname=$1 \
+docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \
 -v ${CONSENSUS}:/consensus \
+-v ${EXECUTION}:/execution \
 -v /etc/localtime:/etc/localtime:ro \
 -d gcr.io/prysmaticlabs/prysm/validator:$PRYSM_VERSION \
 --beacon-rpc-provider=${BEACON_NODE}:4000 \
 --datadir=/consensus/validatordata \
 --accept-terms-of-use \
---interop-num-validators=64 \
+--interop-num-validators=8 \
 --interop-start-index=0 \
 --chain-config-file=/consensus/config.yml \
 --force-clear-db \
