@@ -4,7 +4,7 @@
 if [ "$#" -lt 4 ]
 then
   echo "Use: ./deploy-full.sh <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <NODE_INDEX> [THIS_HOST_IP]" 
-  echo "   Ex: ./deploy-full.sh v1.12.2 HEAD-09d761 8658 1 189.126.111.246"
+  echo "   Ex: ./deploy-full.sh v1.12.2 HEAD-09d761 8658 1 192.168.100.34"
   echo "   or "
   echo "   Ex: ./deploy-full.sh v1.12.2 HEAD-09d761 8658 1"  
   exit 1
