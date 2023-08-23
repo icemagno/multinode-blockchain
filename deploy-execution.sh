@@ -4,27 +4,17 @@ echo ""
 echo ""
 echo ""
 echo "*********************************"
-echo "|    EXECUTION NODE DEPLOYER    |"
+echo "|     DO NOT RUN THIS SCRIPT    |"
 echo "*********************************"
-echo "  > Deploy a Execution Container"
+echo "  User deploy-full.sh instead"
 echo ""
 
-if [ "$#" -lt 5 ]
+if [ "$#" -lt 6 ]
 then
-  echo "Use: ./deploy-execution.sh <NODE_DIR> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <NODE_INDEX> [THIS_HOST_IP]" 
-  echo "   Ex: ./deploy-execution.sh geth-01 v1.12.2 HEAD-09d761 8658 1 192.168.100.34"
+  echo "Use: ./deploy-execution.sh <NODE_DIR> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <NODE_INDEX> <THIS_HOST_IP>" 
+  echo "   Ex: ./deploy-execution.sh geth-01 v1.12.2 HEAD-09d761 8658 1 192.168.100.34 | 127.0.0.1"
   echo "   or "
   echo "   Ex: ./deploy-execution.sh geth-01 v1.12.2 HEAD-09d761 8658 1"  
-  exit 1
-fi
-
-if ! command -v jq &> /dev/null
-then
-  echo "  > I'll need JQ to read JSON files..."
-  echo "  > Be sure you have jq installed."
-  echo "  > Ex. apt install jq"
-  echo "  > I need this to proceed. Aborting..."
-  echo ""
   exit 1
 fi
 
@@ -33,6 +23,9 @@ GETH_VERSION=$2
 PRYSM_VERSION=$3
 NETWORK_ID=$4
 NODE_INDEX=$5
+# HOST_IP=`ip -4 -o addr show dev eth0| awk '{split($4,a,"/");print a[1]}'`
+# HOST_IP=$(curl --silent https://api.ipify.org)
+HOST_IP=$6
 NODE_NAME=("node-$NODE_INDEX")
 NODE_DIR=$(pwd)/${NODE_NAME}
 EXECUTION=${NODE_DIR}/execution
@@ -41,14 +34,6 @@ TOKEN_DIR=${EXECUTION}
 JWT_FILE="${TOKEN_DIR}/jwtsecret"
 NODE_KEY_FILE="${EXECUTION}/node.key"
 
-# HOST_IP=`ip -4 -o addr show dev eth0| awk '{split($4,a,"/");print a[1]}'`
-# HOST_IP=$(curl --silent https://api.ipify.org)
-if [ "$#" -eq 6 ]
-then
-  HOST_IP=$6
-else
-  HOST_IP='127.0.0.1'
-fi    
 echo ""
 
 echo $NODE_NAME
@@ -139,7 +124,7 @@ echo ""
 # --unlock=0x48deeb959d9af454ec406d2a686e50728036e19e
 # --password=/execution/password.txt
 
-docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
+# docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
 
 docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \

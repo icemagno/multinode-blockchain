@@ -4,10 +4,11 @@ echo ""
 echo ""
 echo ""
 echo "*********************************"
-echo "|    VALIDATOR NODE DEPLOYER    |"
+echo "|     DO NOT RUN THIS SCRIPT    |"
 echo "*********************************"
-echo "  > Deploy a Validator Container"
+echo "  User deploy-full.sh instead"
 echo ""
+
 
 if [ "$#" -lt 4 ]
 then
@@ -25,7 +26,7 @@ NODE_DIR=$(pwd)/${NODE_NAME}
 EXECUTION=${NODE_DIR}/execution
 CONSENSUS=${NODE_DIR}/consensus
 
-docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
+# docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
 
 docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \

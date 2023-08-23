@@ -4,21 +4,27 @@ echo ""
 echo ""
 echo ""
 echo "*********************************"
-echo "|    CONSENSUS NODE DEPLOYER    |"
+echo "|     DO NOT RUN THIS SCRIPT    |"
 echo "*********************************"
-echo "  > Deploy a Beacon Container"
-echo "  > I'll need JQ to read JSON files..."
-echo "  >   Be sure you have jq installed."
-echo "  >   Ex. apt install jq"
+echo "  User deploy-full.sh instead"
 echo ""
 
-if [ "$#" -lt 6 ]
+
+if [ "$#" -lt 7 ]
 then
-  echo "Use: ./deploy-consensus.sh <BEACON_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <BEACON_INDEX> <EXECUTION_NAME> [THIS_HOST_IP]" 
-  echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 geth-01 192.168.100.34"
+  echo "Use: ./deploy-consensus.sh <BEACON_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <BEACON_INDEX> <EXECUTION_NAME> <THIS_HOST_IP> [CHECKPOINT_ADDR]" 
+  echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 geth-01 192.168.100.34 | 127.0.0.1"
   echo "   or"
-  echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 geth-01"
+  echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 geth-01 192.168.100.34 192.168.100.39:35106"
   exit 1
+fi
+
+CHECKPOINT_NODE=""
+if [ "$#" -eq 8 ]
+then
+  CHECKPOINT_SYNC_ADDR=("--checkpoint-sync-url=http://$8")
+  CHECKPOINT_BEACON_API_ADDR=("--genesis-beacon-api-url=http://$8")
+  CHECKPOINT_NODE=${CHECKPOINT_SYNC_ADDR}" "${CHECKPOINT_BEACON_API_ADDR}
 fi
 
 CONTAINER_NAME=$1
@@ -27,21 +33,16 @@ PRYSM_VERSION=$3
 NETWORK_ID=$4
 NODE_INDEX=$5
 EXECUTION_NAME=$6
+# HOST_IP=`ip -4 -o addr show dev eth0| awk '{split($4,a,"/");print a[1]}'`
+# HOST_IP=$(curl --silent https://api.ipify.org)
+HOST_IP=$7
 NODE_NAME=("node-$NODE_INDEX")
 NODE_DIR=$(pwd)/${NODE_NAME}
 EXECUTION=${NODE_DIR}/execution
 CONSENSUS=${NODE_DIR}/consensus
 TOKEN_DIR=${EXECUTION}
 JWT_FILE="${TOKEN_DIR}/jwtsecret"
-
-# HOST_IP=`ip -4 -o addr show dev eth0| awk '{split($4,a,"/");print a[1]}'`
-# HOST_IP=$(curl --silent https://api.ipify.org)
-if [ "$#" -eq 7 ]
-then
-  HOST_IP=$7
-else
-  HOST_IP='127.0.0.1'
-fi    
+ 
 
 echo $NODE_NAME
 echo $NODE_DIR
@@ -55,6 +56,7 @@ echo $EXECUTION
 echo $CONSENSUS
 echo $TOKEN_DIR
 echo $JWT_FILE
+echo $CHECKPOINT_NODE
 
 if [ ! -f "$JWT_FILE" ]; then
     echo "JWT Token does not exist."
@@ -88,7 +90,16 @@ echo ""
 # --rpc-port=4000
 # --interop-eth1data-votes=true \
 
-docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
+PEER_LIST=""
+for entry in ./peers/*.p2p
+do
+   P2P_ADDRESS=$(head -1 $entry)
+   if [[ $P2P_ADDRESS == *"/ip4/"* ]]; then
+     IFS='/' read -r -a ARRAY_ADDRESS <<< "$P2P_ADDRESS"
+     PEER=/${ARRAY_ADDRESS[1]}/${ARRAY_ADDRESS[2]}/${ARRAY_ADDRESS[3]}/${ARRAY_ADDRESS[4]}/${ARRAY_ADDRESS[5]}/${ARRAY_ADDRESS[6]}
+     PEER_LIST=" $PEER_LIST --peer $PEER "
+   fi
+done
 
 docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \
@@ -110,36 +121,16 @@ docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --monitoring-host=0.0.0.0 \
 --grpc-gateway-host=0.0.0.0 \
 --contract-deployment-block=0 \
+--verbosity=debug \
 --execution-endpoint=http://${EXECUTION_NAME}:8551 \
 --accept-terms-of-use \
 --jwt-secret=/execution/jwtsecret \
 --disable-staking-contract-check \
---enable-debug-rpc-endpoints \
+--enable-debug-rpc-endpoints ${CHECKPOINT_NODE} \
 --p2p-priv-key=/consensus/priv.key ${PEER_LIST} --suggested-fee-recipient=0x48deeb959d9af454ec406d2a686e50728036e19e
 
 echo "Waiting to beacon brings up..."
 sleep 5
-
-
-echo "Registering peers..."
-search_dir=./peers
-for entry in "$search_dir"/*.p2p
-do
-   P2P_ADDRESS=$(head -1 $entry)
-   if [[ $P2P_ADDRESS == *"/ip4/"* ]]; then
-     IFS='/' read -r -a ARRAY_ADDRESS <<< "$P2P_ADDRESS"
-     PORTA_RPC=${ARRAY_ADDRESS[0]}
-     PEER=/${ARRAY_ADDRESS[1]}/${ARRAY_ADDRESS[2]}/${ARRAY_ADDRESS[3]}/${ARRAY_ADDRESS[4]}/${ARRAY_ADDRESS[5]}${ARRAY_ADDRESS[6]}
-     REMOTE_IP=${ARRAY_ADDRESS[2]}
-     URL="http://"${REMOTE_IP}:${PORTA_RPC}"/prysm/node/trusted_peers"
-     DATA=" {\"addr\":\""${PEER}"\"}"
-     curl \
-	     ${URL} \
-	     -X POST \
-	     -H "Content-Type: application/json" \
-	     -d ${DATA}	
-   fi
-done
 
 
 echo "Saving my own peer connection info so you can use it to connect to others..."
@@ -153,6 +144,32 @@ P2P_EXTERNAL=${temp/13000/"$P2P_TCP"}
 echo ${P2P_EXTERNAL} > ./peers/$CONTAINER_NAME.p2p
 rm -f ./peers/$CONTAINER_NAME.temp
 
+echo "Registering peers..."
+search_dir=./peers
+for entry in "$search_dir"/*.p2p
+do
+   P2P_ADDRESS=$(head -1 $entry)
+   if [[ $P2P_ADDRESS == *"/ip4/"* ]]; then
+     IFS='/' read -r -a ARRAY_ADDRESS <<< "$P2P_ADDRESS"
+     PORTA_RPC=${ARRAY_ADDRESS[0]}
+     PEER=/${ARRAY_ADDRESS[1]}/${ARRAY_ADDRESS[2]}/${ARRAY_ADDRESS[3]}/${ARRAY_ADDRESS[4]}/${ARRAY_ADDRESS[5]}/${ARRAY_ADDRESS[6]}
+     REMOTE_IP=${ARRAY_ADDRESS[2]}
+     URL="http://"${REMOTE_IP}:${PORTA_RPC}"/prysm/node/trusted_peers"
+
+    echo ""
+    echo $URL
+    echo ""
+    echo $PEER
+    echo ""
+
+     DATA=" {\"addr\":\""${PEER}"\"}"
+     curl \
+	     ${URL} \
+	     -X POST \
+	     -H "Content-Type: application/json" \
+	     -d ${DATA}	
+   fi
+done
 
 echo ""
 echo "Done! You may want to save the ./peers directory"
