@@ -21,10 +21,6 @@ then
 fi
 
 echo ""
-echo "You may experience some errors from docker."
-echo "   This is because I'll try to delete a container that "
-echo "   may not exists yet. Be cool."
-echo ""
 read -p "Press any key to continue... " -n1 -s
 echo ""
 
@@ -36,6 +32,8 @@ HOST_IP=$5
 NODE_NAME=("geth-$NODE_INDEX")
 BEACON_NAME=("beacon-$NODE_INDEX")
 VALIDATOR_NAME=("validator-$NODE_INDEX")
+
+mkdir ./peers
 
 #  ./deploy-execution.sh geth-01 v1.12.2 HEAD-09d761 8658 1 192.168.100.34"
 ./deploy-execution.sh ${NODE_NAME} ${GETH_VERSION} ${PRYSM_VERSION} ${NET_ID} ${NODE_INDEX} ${HOST_IP}

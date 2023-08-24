@@ -37,8 +37,11 @@ docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --beacon-rpc-provider=${BEACON_NODE}:4000 \
 --datadir=/consensus/validatordata \
 --accept-terms-of-use \
---interop-num-validators=32 \
+--interop-num-validators=64 \
 --interop-start-index=0 \
 --chain-config-file=/consensus/config.yml \
 --force-clear-db \
---graffiti=$1
+--graffiti=${CONTAINER_NAME} \
+--verbosity=warn \
+--attest-timely \
+--suggested-fee-recipient=0x738b9a6d910723628c595c86d45c8e730ab7036b

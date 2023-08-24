@@ -1,0 +1,378 @@
+{
+	"info": {
+		"_postman_id": "2bbfc166-7d31-48f6-bd7c-01d17ef3e244",
+		"name": "Blockchain",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4438879"
+	},
+	"item": [
+		{
+			"name": "Unlock Account",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 6,\r\n    \"method\": \"personal_unlockAccount\",\r\n    \"params\": [\r\n        \"0xeaeed4faaa262643d3ce883e51335be0cc1cf9d3\",\r\n        \"B@rtholom3usGusm@n\"\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://172.22.1.49:35100",
+					"protocol": "http",
+					"host": [
+						"172",
+						"22",
+						"1",
+						"49"
+					],
+					"port": "35100"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Peers",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 1,\r\n    \"method\": \"admin_peers\",\r\n    \"params\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://146.190.221.30:35200",
+					"protocol": "http",
+					"host": [
+						"146",
+						"190",
+						"221",
+						"30"
+					],
+					"port": "35200"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Peers from CMABREU",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 1,\r\n    \"method\": \"admin_peers\",\r\n    \"params\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://cmabreu.com.br:35100",
+					"protocol": "http",
+					"host": [
+						"cmabreu",
+						"com",
+						"br"
+					],
+					"port": "35100"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Block Number",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 2,\r\n    \"method\": \"eth_blockNumber\",\r\n    \"params\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://146.190.221.30:8545",
+					"protocol": "http",
+					"host": [
+						"146",
+						"190",
+						"221",
+						"30"
+					],
+					"port": "8545"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Account List from CMABREU",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 3,\r\n    \"method\": \"eth_accounts\",\r\n    \"params\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://189.126.111.246:8545",
+					"protocol": "http",
+					"host": [
+						"189",
+						"126",
+						"111",
+						"246"
+					],
+					"port": "8545"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Account List",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 3,\r\n    \"method\": \"eth_accounts\",\r\n    \"params\": []\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://172.22.1.48:35200",
+					"protocol": "http",
+					"host": [
+						"172",
+						"22",
+						"1",
+						"48"
+					],
+					"port": "35200"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Balance",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 4,\r\n    \"method\": \"eth_getBalance\",\r\n    \"params\": [\r\n        \"0x11a5ede427441bb5d65fb416a361a85a6d186855\",\r\n        \"latest\"\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://172.22.1.48:35200",
+					"protocol": "http",
+					"host": [
+						"172",
+						"22",
+						"1",
+						"48"
+					],
+					"port": "35200"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Account",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 5,\r\n    \"method\": \"personal_newAccount\",\r\n    \"params\": [\r\n        \"5uper53cr3t\"\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://172.22.1.48:35200",
+					"protocol": "http",
+					"host": [
+						"172",
+						"22",
+						"1",
+						"48"
+					],
+					"port": "35200"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Account from CMABREU",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 5,\r\n    \"method\": \"personal_newAccount\",\r\n    \"params\": [\r\n        \"5uper53cr3t\"\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://189.126.111.246:8545",
+					"protocol": "http",
+					"host": [
+						"189",
+						"126",
+						"111",
+						"246"
+					],
+					"port": "8545"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Send Transaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 7,\r\n    \"method\": \"eth_sendTransaction\",\r\n    \"params\": [\r\n        {\r\n            \"from\": \"0xeaeed4faaa262643d3ce883e51335be0cc1cf9d3\",\r\n            \"to\": \"0xDb16AE6d05ef4789303AF79b31036a8E8c87a7BB\",\r\n            \"value\": \"0xDE0B6B3A7640000\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://172.22.1.49:35100",
+					"protocol": "http",
+					"host": [
+						"172",
+						"22",
+						"1",
+						"49"
+					],
+					"port": "35100"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Transaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 8,\r\n    \"method\": \"eth_getTransactionByHash\",\r\n    \"params\": [\r\n        \"0x745937c1739aae1a6f4a2c62adf73c2301753ddf7ceed859d14416a43fbd0456\"\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://172.22.1.48:35200",
+					"protocol": "http",
+					"host": [
+						"172",
+						"22",
+						"1",
+						"48"
+					],
+					"port": "35200"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Transaction CMABREU",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"jsonrpc\": \"2.0\",\r\n    \"id\": 8,\r\n    \"method\": \"eth_getTransactionByHash\",\r\n    \"params\": [\r\n        \"0xed608d02d96288255f55fe60361b893cea91b1f33cedb78cf83bb4c4af34c15c\"\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://189.126.111.246:8545",
+					"protocol": "http",
+					"host": [
+						"189",
+						"126",
+						"111",
+						"246"
+					],
+					"port": "8545"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register Trusted Peer",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"addr\": \"/ip4/172.22.1.49/tcp/35105/p2p/16Uiu2HAm8Bq51gqUCb93AyC9gXJinnjcaPDVNeU6HrdTCBYPYLJg\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://172.22.1.48:35206/prysm/node/trusted_peers",
+					"protocol": "http",
+					"host": [
+						"172",
+						"22",
+						"1",
+						"48"
+					],
+					"port": "35206",
+					"path": [
+						"prysm",
+						"node",
+						"trusted_peers"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

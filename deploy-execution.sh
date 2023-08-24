@@ -153,7 +153,7 @@ docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --gcmode=archive \
 --identity=${CONTAINER_NAME} \
 --cache=4096 \
---maxpeers=50 \
+--maxpeers=10 \
 --verbosity=5 \
 --networkid=${NETWORK_ID} \
 --nodekeyhex="${NODE_KEY_HEX}" \

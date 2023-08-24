@@ -43,6 +43,7 @@ CONSENSUS=${NODE_DIR}/consensus
 TOKEN_DIR=${EXECUTION}
 JWT_FILE="${TOKEN_DIR}/jwtsecret"
  
+mkdir ${CONSENSUS}/backup
 
 echo $NODE_NAME
 echo $NODE_DIR
@@ -86,10 +87,6 @@ echo ""
 echo "External IP is : $HOST_IP"
 echo ""
 
-# --suggested-fee-recipient=0x48deeb959d9af454ec406d2a686e50728036e19e
-# --rpc-port=4000
-# --interop-eth1data-votes=true \
-
 PEER_LIST=""
 for entry in ./peers/*.p2p
 do
@@ -100,6 +97,9 @@ do
      PEER_LIST=" $PEER_LIST --peer $PEER "
    fi
 done
+
+echo "Trusted Peers: "
+echo ${PEER_LIST}
 
 docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \
@@ -121,13 +121,22 @@ docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --monitoring-host=0.0.0.0 \
 --grpc-gateway-host=0.0.0.0 \
 --contract-deployment-block=0 \
---verbosity=debug \
+--verbosity=trace \
 --execution-endpoint=http://${EXECUTION_NAME}:8551 \
 --accept-terms-of-use \
 --jwt-secret=/execution/jwtsecret \
 --disable-staking-contract-check \
 --enable-debug-rpc-endpoints ${CHECKPOINT_NODE} \
---p2p-priv-key=/consensus/priv.key ${PEER_LIST} --suggested-fee-recipient=0x48deeb959d9af454ec406d2a686e50728036e19e
+--p2p-static-id \
+--p2p-max-peers=10 \
+--db-backup-output-dir=/consensus/backup \
+--force-clear-db \
+--no-discovery \
+--suggested-fee-recipient=0x738b9a6d910723628c595c86d45c8e730ab7036b
+#--p2p-priv-key=/consensus/priv.key ${PEER_LIST} \
+#--disable-broadcast-slashings \
+#--enable-historical-state-representation \
+#--p2p-host-ip=${HOST_IP} 
 
 echo "Waiting to beacon brings up..."
 sleep 5
@@ -144,7 +153,10 @@ P2P_EXTERNAL=${temp/13000/"$P2P_TCP"}
 echo ${P2P_EXTERNAL} > ./peers/$CONTAINER_NAME.p2p
 rm -f ./peers/$CONTAINER_NAME.temp
 
+
 echo "Registering peers..."
+
+: '
 search_dir=./peers
 for entry in "$search_dir"/*.p2p
 do
@@ -170,6 +182,7 @@ do
 	     -d ${DATA}	
    fi
 done
+'
 
 echo ""
 echo "Done! You may want to save the ./peers directory"
