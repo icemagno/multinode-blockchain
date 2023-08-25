@@ -1,31 +1,17 @@
 #!/bin/bash
 
-echo ""
-echo ""
-echo ""
-echo "*********************************"
-echo "|     DO NOT RUN THIS SCRIPT    |"
-echo "*********************************"
-echo "  User deploy-full.sh instead"
-echo ""
-
-
-if [ "$#" -lt 7 ]
+if [ "$#" -lt 8 ]
 then
-  echo "Use: ./deploy-consensus.sh <BEACON_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <BEACON_INDEX> <EXECUTION_NAME> <THIS_HOST_IP> [CHECKPOINT_ADDR]" 
-  echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 geth-01 192.168.100.34 | 127.0.0.1"
-  echo "   or"
-  echo "   Ex: ./deploy-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 geth-01 192.168.100.34 192.168.100.39:35106"
+  echo ""
+  echo "Use: ./restart-consensus.sh <BEACON_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <BEACON_INDEX> <EXECUTION_NAME> <THIS_HOST_IP> <CHECKPOINT_ADDR>" 
+  echo "   Ex: ./restart-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 geth-01 192.168.100.34 192.168.100.39:35106"
   exit 1
 fi
 
-CHECKPOINT_NODE=""
-if [ "$#" -eq 8 ]
-then
-  CHECKPOINT_SYNC_ADDR=("--checkpoint-sync-url=http://$8")
-  CHECKPOINT_BEACON_API_ADDR=("--genesis-beacon-api-url=http://$8")
-  CHECKPOINT_NODE=${CHECKPOINT_SYNC_ADDR}" "${CHECKPOINT_BEACON_API_ADDR}
-fi
+
+CHECKPOINT_SYNC_ADDR=("--checkpoint-sync-url=http://$8")
+CHECKPOINT_BEACON_API_ADDR=("--genesis-beacon-api-url=http://$8")
+CHECKPOINT_NODE=${CHECKPOINT_SYNC_ADDR}" "${CHECKPOINT_BEACON_API_ADDR}
 
 CONTAINER_NAME=$1
 GETH_VERSION=$2
@@ -43,8 +29,6 @@ CONSENSUS=${NODE_DIR}/consensus
 TOKEN_DIR=${EXECUTION}
 JWT_FILE="${TOKEN_DIR}/jwtsecret"
 NODE_KEY_FILE="${CONSENSUS}/priv.key"
-
-mkdir ${CONSENSUS}/backup
 
 echo $NODE_NAME
 echo $NODE_DIR
@@ -67,11 +51,7 @@ if [ ! -f "$JWT_FILE" ]; then
     exit 1
 fi
 
-
-echo "Generating P2P Private Key..."
-openssl ecparam -name secp256k1 -genkey -noout | openssl ec -text -noout > keypair
-cat keypair | grep priv -A 3 | tail -n +2 | tr -d '\n[:space:]:' | sed 's/^00//' > ${NODE_KEY_FILE}
-rm -rf priv && rm -rf keypair
+docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME
 
 echo "Deploying Beacon $CONTAINER_NAME"
 
@@ -149,48 +129,16 @@ sleep 5
 
 
 echo "Saving my own peer connection info so you can use it to connect to others..."
-rm -f ./peers/$CONTAINER_NAME.p2p
 P2P_API=("http://localhost:$RPC_PORT/p2p")
 curl \
 ${P2P_API} | awk -F/tcp '{print "/tcp" $NF}' | grep p2p > ./peers/$CONTAINER_NAME.temp
 P2P_ADDRESS=$(head -1 ./peers/$CONTAINER_NAME.temp)
-temp=(${RPC_API}"/ip4/"${HOST_IP}${P2P_ADDRESS})
+
+temp=("{\"addr\":\"/ip4/"${HOST_IP}${P2P_ADDRESS}"\"}")
 P2P_EXTERNAL=${temp/13000/"$P2P_TCP"}
 echo ${P2P_EXTERNAL} > ./peers/$CONTAINER_NAME.p2p
 rm -f ./peers/$CONTAINER_NAME.temp
 
-
-echo "Registering peers..."
-
-: '
-search_dir=./peers
-for entry in "$search_dir"/*.p2p
-do
-   P2P_ADDRESS=$(head -1 $entry)
-   if [[ $P2P_ADDRESS == *"/ip4/"* ]]; then
-     IFS='/' read -r -a ARRAY_ADDRESS <<< "$P2P_ADDRESS"
-     PORTA_RPC=${ARRAY_ADDRESS[0]}
-     PEER=/${ARRAY_ADDRESS[1]}/${ARRAY_ADDRESS[2]}/${ARRAY_ADDRESS[3]}/${ARRAY_ADDRESS[4]}/${ARRAY_ADDRESS[5]}/${ARRAY_ADDRESS[6]}
-     REMOTE_IP=${ARRAY_ADDRESS[2]}
-     URL="http://"${REMOTE_IP}:${PORTA_RPC}"/prysm/node/trusted_peers"
-
-    echo ""
-    echo $URL
-    echo ""
-    echo $PEER
-    echo ""
-
-     DATA=" {\"addr\":\""${PEER}"\"}"
-     curl \
-	     ${URL} \
-	     -X POST \
-	     -H "Content-Type: application/json" \
-	     -d ${DATA}	
-   fi
-done
-'
-
 echo ""
-echo "Done! You may want to save the ./peers directory"
-echo "  contents to put it in another host and allow them to sync."
+echo "Done!"
 
