@@ -161,7 +161,7 @@ docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --nat=extip:${HOST_IP}
 
 echo "Waiting to node brings up..."
-sleep 5
+sleep 10
 
 echo "Taking ENODE address..."
 
@@ -180,7 +180,6 @@ http://localhost:${RPC_PORT} \
 
 temp=`cat peers/$CONTAINER_NAME.nodeinfo | jq -r '.result.enode'`
 ENODE_ADDR=${temp/30303/"$P2P_PORT"}
-
 ENODE_RPC='{
     "jsonrpc": "2.0",
     "method": "admin_addPeer",

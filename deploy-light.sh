@@ -3,10 +3,10 @@
 
 if [ "$#" -lt 5 ]
 then
-  echo "Use: ./deploy-full.sh <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <NODE_INDEX> <THIS_HOST_IP> [CHECKPOINT_ADDR]" 
-  echo "   Ex: ./deploy-full.sh v1.12.2 HEAD-09d761 8658 1 192.168.100.34 | 127.0.0.1"
+  echo "Use: ./deploy-light.sh <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <NODE_INDEX> <THIS_HOST_IP> [CHECKPOINT_ADDR]" 
+  echo "   Ex: ./deploy-light.sh v1.12.2 HEAD-09d761 8658 1 192.168.100.34 | 127.0.0.1"
   echo "   or "
-  echo "   Ex: ./deploy-full.sh v1.12.2 HEAD-09d761 8658 1 192.168.100.34 192.168.100.39:35106"
+  echo "   Ex: ./deploy-light.sh v1.12.2 HEAD-09d761 8658 1 192.168.100.34 192.168.100.39:35106"
   exit 1
 fi
 
@@ -46,8 +46,5 @@ then
 else
   ./deploy-consensus.sh ${BEACON_NAME} ${GETH_VERSION} ${PRYSM_VERSION} ${NET_ID} ${NODE_INDEX} ${NODE_NAME} ${HOST_IP}
 fi
-
-# ./deploy-validator.sh validator-01 HEAD-09d761 1 beacon-01"
-./deploy-validator.sh ${VALIDATOR_NAME} ${PRYSM_VERSION} ${NODE_INDEX} ${BEACON_NAME}
 
 echo "You're done!!"

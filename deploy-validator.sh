@@ -13,7 +13,7 @@ echo ""
 if [ "$#" -lt 4 ]
 then
   echo "Use: ./deploy-validator.sh <VALIDATOR_NAME> <PRYSM_VERSION> <VALIDATOR_INDEX> <BEACON_NAME>" 
-  echo "   Ex: ./deploy-validator.sh validator-01 HEAD-09d761 1 beacon-01"
+  echo "   Ex: ./deploy-validator.sh validator-1 HEAD-09d761 1 beacon-1"
   exit 1
 fi
 
@@ -25,8 +25,6 @@ NODE_NAME=("node-$NODE_INDEX")
 NODE_DIR=$(pwd)/${NODE_NAME}
 EXECUTION=${NODE_DIR}/execution
 CONSENSUS=${NODE_DIR}/consensus
-
-# docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
 
 docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \

@@ -4,7 +4,7 @@ if [ "$#" -lt 8 ]
 then
   echo ""
   echo "Use: ./restart-consensus.sh <BEACON_NAME> <GETH_VERSION> <PRYSM_VERSION> <NET_ID> <BEACON_INDEX> <EXECUTION_NAME> <THIS_HOST_IP> <CHECKPOINT_ADDR>" 
-  echo "   Ex: ./restart-consensus.sh beacon-01 v1.12.2 HEAD-09d761 8658 1 geth-01 192.168.100.34 192.168.100.39:35106"
+  echo "   Ex: ./restart-consensus.sh beacon-1 v1.12.2 HEAD-09d761 8658 1 geth-1 192.168.100.34 192.168.100.39:35106"
   exit 1
 fi
 
@@ -73,20 +73,6 @@ if [ -f "./peers/$CONTAINER_NAME.p2p" ]; then
   rm -f ./peers/$CONTAINER_NAME.p2p
 fi
 
-PEER_LIST=""
-for entry in ./peers/*.p2p
-do
-   P2P_ADDRESS=$(head -1 $entry)
-   if [[ $P2P_ADDRESS == *"/ip4/"* ]]; then
-     IFS='/' read -r -a ARRAY_ADDRESS <<< "$P2P_ADDRESS"
-     PEER=/${ARRAY_ADDRESS[1]}/${ARRAY_ADDRESS[2]}/${ARRAY_ADDRESS[3]}/${ARRAY_ADDRESS[4]}/${ARRAY_ADDRESS[5]}/${ARRAY_ADDRESS[6]}
-     PEER_LIST=" $PEER_LIST --peer $PEER "
-   fi
-done
-
-echo "Trusted Peers: "
-echo ${PEER_LIST}
-
 docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --network=interna \
 -v ${CONSENSUS}:/consensus \
@@ -107,7 +93,7 @@ docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --monitoring-host=0.0.0.0 \
 --grpc-gateway-host=0.0.0.0 \
 --contract-deployment-block=0 \
---verbosity=trace \
+--verbosity=info \
 --execution-endpoint=http://${EXECUTION_NAME}:8551 \
 --accept-terms-of-use \
 --jwt-secret=/execution/jwtsecret \
@@ -118,11 +104,10 @@ docker run --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} \
 --db-backup-output-dir=/consensus/backup \
 --force-clear-db \
 --no-discovery \
---suggested-fee-recipient=0x738b9a6d910723628c595c86d45c8e730ab7036b
-#--p2p-priv-key=/consensus/priv.key ${PEER_LIST} \
-#--disable-broadcast-slashings \
-#--enable-historical-state-representation \
-#--p2p-host-ip=${HOST_IP} 
+--suggested-fee-recipient=0x738b9a6d910723628c595c86d45c8e730ab7036b \
+--p2p-priv-key=/consensus/priv.key \
+--disable-broadcast-slashings \
+--p2p-host-ip=${HOST_IP} 
 
 echo "Waiting to beacon brings up..."
 sleep 5
@@ -133,8 +118,7 @@ P2P_API=("http://localhost:$RPC_PORT/p2p")
 curl \
 ${P2P_API} | awk -F/tcp '{print "/tcp" $NF}' | grep p2p > ./peers/$CONTAINER_NAME.temp
 P2P_ADDRESS=$(head -1 ./peers/$CONTAINER_NAME.temp)
-
-temp=("{\"addr\":\"/ip4/"${HOST_IP}${P2P_ADDRESS}"\"}")
+temp=("{\"rpc\":"${RPC_API}",\"addr\":\"/ip4/"${HOST_IP}${P2P_ADDRESS}"\"}")
 P2P_EXTERNAL=${temp/13000/"$P2P_TCP"}
 echo ${P2P_EXTERNAL} > ./peers/$CONTAINER_NAME.p2p
 rm -f ./peers/$CONTAINER_NAME.temp
